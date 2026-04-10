@@ -7,7 +7,7 @@ USE supermarket_inventory;
 CREATE TABLE user (
                       id BIGINT PRIMARY KEY AUTO_INCREMENT,
                       username VARCHAR(50) NOT NULL,
-                      password VARCHAR(100) NOT NULL,
+                      password VARCHAR(255) NOT NULL COMMENT '密码哈希摘要，不存储明文密码',
                       real_name VARCHAR(50),
                       status TINYINT NOT NULL DEFAULT 1 COMMENT '0-禁用 1-启用',
                       create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
