@@ -1,0 +1,9 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/supermarket_inventory
+    username: root
+    password: qwer@1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
