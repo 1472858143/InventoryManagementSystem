@@ -1,9 +1,12 @@
 package com.supermarket.inventory.auth.service;
 
-import com.supermarket.inventory.auth.dto.AuthUserAuthInfo;
+import com.supermarket.inventory.auth.context.AuthContext;
 import com.supermarket.inventory.auth.dto.LoginRequest;
 import com.supermarket.inventory.auth.mapper.AuthMapper;
+import com.supermarket.inventory.auth.model.AuthSession;
+import com.supermarket.inventory.auth.model.AuthUserAuthInfo;
 import com.supermarket.inventory.auth.password.PasswordService;
+import com.supermarket.inventory.auth.vo.CurrentUserResponse;
 import com.supermarket.inventory.auth.vo.LoginResponse;
 import com.supermarket.inventory.common.exception.BusinessException;
 import org.springframework.stereotype.Service;
@@ -58,5 +61,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void logout(String token) {
         authTokenService.invalidate(token);
+    }
+
+    @Override
+    public CurrentUserResponse currentUser() {
+        AuthSession session = AuthContext.getCurrentSession();
+        if (session == null) {
+            throw new BusinessException(401, "未登录或认证失败");
+        }
+        return new CurrentUserResponse(session.userId(), session.username());
     }
 }
