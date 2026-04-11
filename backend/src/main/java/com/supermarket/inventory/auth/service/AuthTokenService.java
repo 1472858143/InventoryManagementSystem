@@ -1,20 +1,22 @@
 package com.supermarket.inventory.auth.service;
 
+import com.supermarket.inventory.auth.model.AuthSession;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthTokenService {
 
-    private final Map<String, LoginSession> sessions = new ConcurrentHashMap<>();
+    private final Map<String, AuthSession> sessions = new ConcurrentHashMap<>();
 
     public String issueToken(Long userId, String username) {
         String token = UUID.randomUUID().toString().replace("-", "");
-        sessions.put(token, new LoginSession(userId, username, Instant.now()));
+        sessions.put(token, new AuthSession(userId, username, Instant.now()));
         return token;
     }
 
@@ -24,6 +26,14 @@ public class AuthTokenService {
         }
     }
 
-    private record LoginSession(Long userId, String username, Instant issuedAt) {
+    public boolean isValid(String token) {
+        return token != null && !token.isBlank() && sessions.containsKey(token);
+    }
+
+    public Optional<AuthSession> getSession(String token) {
+        if (!isValid(token)) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(sessions.get(token));
     }
 }

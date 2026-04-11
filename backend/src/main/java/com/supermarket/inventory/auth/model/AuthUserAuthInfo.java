@@ -1,4 +1,4 @@
-package com.supermarket.inventory.auth.dto;
+package com.supermarket.inventory.auth.model;
 
 public class AuthUserAuthInfo {
 

@@ -2,9 +2,11 @@ package com.supermarket.inventory.auth.controller;
 
 import com.supermarket.inventory.auth.dto.LoginRequest;
 import com.supermarket.inventory.auth.service.AuthService;
+import com.supermarket.inventory.auth.vo.CurrentUserResponse;
 import com.supermarket.inventory.auth.vo.LoginResponse;
 import com.supermarket.inventory.common.response.ApiResponse;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -32,6 +34,11 @@ public class AuthController {
     ) {
         authService.logout(extractToken(authorization));
         return ApiResponse.success();
+    }
+
+    @GetMapping("/me")
+    public ApiResponse<CurrentUserResponse> currentUser() {
+        return ApiResponse.success(authService.currentUser());
     }
 
     private String extractToken(String authorization) {
