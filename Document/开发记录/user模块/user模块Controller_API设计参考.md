@@ -172,3 +172,8 @@ Controller 不负责：
 3. `PUT /api/users/status`
 
 这套方案与当前 DTO / VO / Service 设计保持一致，适合作为 `user` 模块第一阶段的统一 API 基线。
+
+## 本文件作用
+
+本文档用于指导 Controller 层接口定义、参数校验与响应结构实现。
+进入 Controller 编码阶段时，应以本文件作为 URL、HTTP 方法、认证要求与返回结构的统一参考。
