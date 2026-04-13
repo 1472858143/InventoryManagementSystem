@@ -219,6 +219,7 @@
 
 - 数据库访问
 - 不承载业务规则
+- 根据项目书中的结构设计，`stock` 模块 Mapper 层最终采用 MyBatis XML 映射文件实现
 
 ### 6.5 entity / dto / vo / enums
 

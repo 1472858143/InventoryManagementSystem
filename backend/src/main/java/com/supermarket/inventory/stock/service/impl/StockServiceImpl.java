@@ -67,7 +67,7 @@ public class StockServiceImpl implements StockService {
     public void updateStockLimit(Long productId, StockLimitUpdateRequest request) {
         requireProductId(productId);
 
-        Stock stock = requireExistingStock(productId);
+        requireExistingStock(productId);
         stockDomainService.validateLimit(request.minStock(), request.maxStock());
         stockMapper.updateLimitByProductId(productId, request.minStock(), request.maxStock());
     }

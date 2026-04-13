@@ -4,7 +4,10 @@
 
 本文档用于明确 `stock` 模块第一阶段所需的最小 Mapper 能力，为后续编写 Mapper 接口与 SQL 提供统一参考。
 
-当前阶段只做能力设计，不编写 SQL，不编写 Mapper 代码实现。
+根据项目书中的结构设计，`stock` 模块 Mapper 层最终采用 MyBatis XML 映射文件实现，正式实现口径为：
+
+- `resources/mapper/StockMapper.xml`
+- `resources/mapper/StockLogMapper.xml`
 
 ## 2. 当前设计范围
 
@@ -52,6 +55,7 @@
 
 - `StockMapper` 承担第一阶段外部接口的主数据访问
 - `StockLogMapper` 承担库存变更日志写入支撑能力
+- 正式代码实现按项目书采用 XML 映射，而不是注解 SQL
 - 当前阶段不新增 `ProductMapper` 作为 `stock` 模块独立 Mapper，而是在库存查询中按需做最小商品信息联表或最小商品读取能力设计
 
 ## 6. 方法清单
@@ -122,4 +126,5 @@
 
 - 外部接口主能力由 `StockMapper` 承担
 - 库存日志写入由 `StockLogMapper` 承担
+- `StockMapper.xml` 与 `StockLogMapper.xml` 是项目书优先下的正式实现方式
 - 后续编码时应坚持“Mapper 只查库/写库，不承载库存规则”的原则
