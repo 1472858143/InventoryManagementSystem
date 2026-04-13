@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.supermarket.inventory.stock.mapper.StockMapper">
+
+    <select id="findAll" resultType="com.supermarket.inventory.stock.model.StockView">
+        SELECT
+            s.product_id AS productId,
+            p.product_code AS productCode,
+            p.product_name AS productName,
+            s.quantity AS quantity,
+            s.min_stock AS minStock,
+            s.max_stock AS maxStock,
+            s.update_time AS updateTime
+        FROM stock s
+        INNER JOIN product p ON p.id = s.product_id
+        ORDER BY s.id ASC
+    </select>
+
+    <select id="findByProductId" parameterType="long" resultType="com.supermarket.inventory.stock.model.StockView">
+        SELECT
+            s.product_id AS productId,
+            p.product_code AS productCode,
+            p.product_name AS productName,
+            s.quantity AS quantity,
+            s.min_stock AS minStock,
+            s.max_stock AS maxStock,
+            s.update_time AS updateTime
+        FROM stock s
+        INNER JOIN product p ON p.id = s.product_id
+        WHERE s.product_id = #{productId}
+    </select>
+
+    <select id="findEntityByProductId" parameterType="long" resultType="com.supermarket.inventory.stock.entity.Stock">
+        SELECT
+            id AS id,
+            product_id AS productId,
+            quantity AS quantity,
+            min_stock AS minStock,
+            max_stock AS maxStock,
+            update_time AS updateTime
+        FROM stock
+        WHERE product_id = #{productId}
+    </select>
+
+    <update id="updateLimitByProductId">
+        UPDATE stock
+        SET min_stock = #{minStock},
+            max_stock = #{maxStock}
+        WHERE product_id = #{productId}
+    </update>
+
+    <update id="updateQuantityByProductId">
+        UPDATE stock
+        SET quantity = #{quantity}
+        WHERE product_id = #{productId}
+    </update>
+
+</mapper>
