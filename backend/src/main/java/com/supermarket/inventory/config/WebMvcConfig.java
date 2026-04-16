@@ -25,6 +25,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 "/api/products/**",
                 "/api/inbounds",
                 "/api/inbounds/**",
+                "/api/outbounds",
+                "/api/outbounds/**",
                 "/api/stocks",
                 "/api/stocks/**"
             )
