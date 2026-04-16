@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.supermarket.inventory.outbound.mapper.OutboundOrderMapper">
+
+    <insert
+        id="insert"
+        parameterType="com.supermarket.inventory.outbound.entity.OutboundOrder"
+        useGeneratedKeys="true"
+        keyProperty="id"
+    >
+        INSERT INTO outbound_order (
+            product_id,
+            quantity,
+            operator
+        ) VALUES (
+            #{productId},
+            #{quantity},
+            #{operator}
+        )
+    </insert>
+
+    <select id="findAll" resultType="com.supermarket.inventory.outbound.mapper.model.OutboundOrderView">
+        SELECT
+            o.id AS id,
+            o.product_id AS productId,
+            p.product_code AS productCode,
+            p.product_name AS productName,
+            o.quantity AS quantity,
+            o.operator AS operator,
+            o.create_time AS createTime
+        FROM outbound_order o
+        INNER JOIN product p ON p.id = o.product_id
+        ORDER BY o.create_time DESC, o.id DESC
+    </select>
+
+    <select id="findById" parameterType="long" resultType="com.supermarket.inventory.outbound.mapper.model.OutboundOrderView">
+        SELECT
+            o.id AS id,
+            o.product_id AS productId,
+            p.product_code AS productCode,
+            p.product_name AS productName,
+            o.quantity AS quantity,
+            o.operator AS operator,
+            o.create_time AS createTime
+        FROM outbound_order o
+        INNER JOIN product p ON p.id = o.product_id
+        WHERE o.id = #{id}
+    </select>
+
+</mapper>
