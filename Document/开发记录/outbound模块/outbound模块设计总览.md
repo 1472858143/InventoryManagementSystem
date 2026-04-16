@@ -247,3 +247,20 @@
 本文档用于快速查看 `outbound` 模块当前阶段整体设计结论。
 
 编码前应优先从本文件开始，再按需查看对象层、Mapper、Service、Controller / API 与项目书对照校验文档。
+
+## 16. 阶段落地状态
+
+当前第一阶段设计已完成落地，代码已实现到 Controller。
+
+当前实现状态如下：
+
+- 已实现 `POST /api/outbounds`
+- 已实现 `GET /api/outbounds`
+- `OutboundOrderMapper.xml` 已按项目书口径采用 MyBatis XML
+- `/api/outbounds` 与 `/api/outbounds/**` 已纳入认证拦截范围
+- 出库库存扣减通过 `stockService.decreaseStock(...)` 完成
+- `outbound` 不直接修改 `stock.quantity`
+- `outbound` 不直接写入 `stock_log`
+- 项目编译验证已通过
+
+后续扩展应继续以项目书和本目录设计文档为最高优先级依据。
