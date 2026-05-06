@@ -1,43 +1,60 @@
 <template>
-  <main class="login-page">
-    <section class="login-panel">
-      <h1>超市库存管理系统</h1>
-      <p class="login-panel__subtitle">请登录后进入后台管理界面</p>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-header">
+        <el-icon size="40" color="#1890ff"><Box /></el-icon>
+        <h1>超市库存管理系统</h1>
+        <p>Supermarket Inventory Management System</p>
+      </div>
 
-      <form class="login-form" @submit.prevent="handleSubmit">
-        <label class="login-form__field">
-          <span>用户名</span>
-          <input
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" size="large">
+        <el-form-item label="用户名" prop="username">
+          <el-input
             v-model.trim="form.username"
-            autocomplete="username"
-            name="username"
-            type="text"
             placeholder="请输入用户名"
+            autocomplete="username"
+            :prefix-icon="UserIcon"
+            clearable
           />
-        </label>
-
-        <label class="login-form__field">
-          <span>密码</span>
-          <input
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input
             v-model="form.password"
-            autocomplete="current-password"
-            name="password"
             type="password"
             placeholder="请输入密码"
+            autocomplete="current-password"
+            :prefix-icon="LockIcon"
+            show-password
+            @keyup.enter="handleSubmit"
           />
-        </label>
+        </el-form-item>
 
-        <p v-if="errorMessage" class="login-form__error">{{ errorMessage }}</p>
+        <el-alert
+          v-if="errorMessage"
+          :title="errorMessage"
+          type="error"
+          :closable="false"
+          show-icon
+          style="margin-bottom: 16px"
+        />
 
-        <button class="login-form__submit" type="submit" :disabled="loading">
-          {{ loading ? '登录中...' : '登录' }}
-        </button>
-      </form>
-    </section>
-  </main>
+        <el-form-item>
+          <el-button
+            type="primary"
+            style="width: 100%"
+            :loading="loading"
+            @click="handleSubmit"
+          >
+            {{ loading ? '登录中...' : '登 录' }}
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
 </template>
 
 <script setup>
+import { Lock as LockIcon, User as UserIcon } from '@element-plus/icons-vue'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { login } from '../../api/auth'
@@ -45,35 +62,32 @@ import { clearAuth, setLoginSession } from '../../stores/auth'
 
 const route = useRoute()
 const router = useRouter()
+const formRef = ref(null)
 
-const form = reactive({
-  username: '',
-  password: '',
-})
+const form = reactive({ username: '', password: '' })
 const loading = ref(false)
 const errorMessage = ref('')
 
+const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+}
+
 async function handleSubmit() {
   errorMessage.value = ''
-
-  if (!form.username || !form.password) {
-    errorMessage.value = '请输入用户名和密码'
-    return
-  }
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
 
   loading.value = true
   try {
-    const loginResult = await login({
-      username: form.username,
-      password: form.password,
-    })
+    const loginResult = await login({ username: form.username, password: form.password })
     setLoginSession(loginResult)
     form.password = ''
     const redirectPath = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
     router.replace(redirectPath)
   } catch (error) {
     clearAuth()
-    errorMessage.value = error.message || '登录失败'
+    errorMessage.value = error.message || '登录失败，请检查用户名和密码'
   } finally {
     loading.value = false
   }
@@ -82,77 +96,41 @@ async function handleSubmit() {
 
 <style scoped>
 .login-page {
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
   padding: 24px;
-  background: #f3f4f6;
+  background: linear-gradient(135deg, #0d1117 0%, #1a2744 50%, #2d3561 100%);
 }
 
-.login-panel {
+.login-card {
   width: 100%;
-  max-width: 400px;
-  padding: 28px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  max-width: 420px;
   background: #ffffff;
+  border-radius: 12px;
+  padding: 40px 36px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
-.login-panel h1 {
-  margin-bottom: 8px;
-  font-size: 24px;
-  color: #111827;
-}
-
-.login-panel__subtitle {
-  margin-bottom: 24px;
-  color: #4b5563;
-}
-
-.login-form {
+.login-header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.login-form__field {
-  display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
-  color: #374151;
-  font-size: 14px;
+  margin-bottom: 32px;
+  text-align: center;
 }
 
-.login-form__field input {
-  min-height: 40px;
-  padding: 8px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  color: #111827;
+.login-header h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
 }
 
-.login-form__error {
-  padding: 10px 12px;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  background: #fef2f2;
-  color: #b91c1c;
-  font-size: 14px;
-}
-
-.login-form__submit {
-  min-height: 42px;
-  border: 1px solid #1d4ed8;
-  border-radius: 6px;
-  background: #2563eb;
-  color: #ffffff;
-  cursor: pointer;
-}
-
-.login-form__submit:disabled {
-  border-color: #93c5fd;
-  background: #93c5fd;
-  cursor: not-allowed;
+.login-header p {
+  font-size: 12px;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
 }
 </style>
