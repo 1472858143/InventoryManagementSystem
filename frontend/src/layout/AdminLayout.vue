@@ -1,33 +1,44 @@
 <template>
-  <div class="admin-layout">
-    <header class="admin-layout__header">
-      <div class="admin-layout__brand">超市库存管理系统</div>
-      <div class="admin-layout__user-area">
-        <span class="admin-layout__user">{{ currentUsername }}</span>
-        <button class="admin-layout__logout" type="button" @click="handleLogout">
-          退出登录
-        </button>
+  <div class="layout-root">
+    <aside class="layout-sidebar">
+      <div class="sidebar-brand">
+        <el-icon size="18" color="#1890ff"><Box /></el-icon>
+        <span>库存管理系统</span>
       </div>
-    </header>
-
-    <aside class="admin-layout__sidebar">
-      <div class="admin-layout__menu-title">后台菜单</div>
-      <nav class="admin-layout__menu" aria-label="后台菜单">
-        <RouterLink
-          v-for="menuItem in menuItems"
-          :key="menuItem.name"
-          class="admin-layout__menu-item"
-          :class="{ 'admin-layout__menu-item--active': route.path === menuItem.path }"
-          :to="menuItem.path"
-        >
-          {{ menuItem.name }}
-        </RouterLink>
-      </nav>
+      <el-menu
+        :default-active="route.path"
+        router
+        background-color="#001529"
+        text-color="rgba(255,255,255,0.65)"
+        active-text-color="#ffffff"
+        class="sidebar-menu"
+      >
+        <el-menu-item index="/"><el-icon><House /></el-icon><span>首页</span></el-menu-item>
+        <el-menu-item index="/users"><el-icon><User /></el-icon><span>用户管理</span></el-menu-item>
+        <el-menu-item index="/products"><el-icon><Goods /></el-icon><span>商品管理</span></el-menu-item>
+        <el-menu-item index="/stocks"><el-icon><Box /></el-icon><span>库存管理</span></el-menu-item>
+        <el-menu-item index="/inbounds"><el-icon><Download /></el-icon><span>入库管理</span></el-menu-item>
+        <el-menu-item index="/outbounds"><el-icon><Upload /></el-icon><span>出库管理</span></el-menu-item>
+        <el-menu-item index="/stockchecks"><el-icon><DocumentChecked /></el-icon><span>库存盘点</span></el-menu-item>
+        <el-menu-item index="/reports"><el-icon><DataAnalysis /></el-icon><span>报表统计</span></el-menu-item>
+        <el-menu-item index="/system"><el-icon><Setting /></el-icon><span>系统信息</span></el-menu-item>
+      </el-menu>
     </aside>
 
-    <main class="admin-layout__main">
-      <RouterView />
-    </main>
+    <div class="layout-body">
+      <header class="layout-header">
+        <span class="header-title">超市库存管理系统</span>
+        <div class="header-right">
+          <el-icon color="#595959"><User /></el-icon>
+          <span class="header-username">{{ currentUsername }}</span>
+          <el-divider direction="vertical" />
+          <el-button text type="danger" size="small" @click="handleLogout">退出登录</el-button>
+        </div>
+      </header>
+      <main class="layout-main">
+        <RouterView />
+      </main>
+    </div>
   </div>
 </template>
 
@@ -40,25 +51,13 @@ import { authState, clearAuth } from '../stores/auth'
 const route = useRoute()
 const router = useRouter()
 
-const currentUsername = computed(() => authState.currentUser?.username || '当前用户')
-
-const menuItems = [
-  { name: '首页', path: '/' },
-  { name: '用户管理', path: '/users' },
-  { name: '商品管理', path: '/products' },
-  { name: '库存管理', path: '/stocks' },
-  { name: '入库管理', path: '/inbounds' },
-  { name: '出库管理', path: '/outbounds' },
-  { name: '库存盘点', path: '/stockchecks' },
-  { name: '报表统计', path: '/reports' },
-  { name: '系统信息', path: '/system' },
-]
+const currentUsername = computed(() => authState.currentUser?.username || '用户')
 
 async function handleLogout() {
   try {
     await logout()
   } catch {
-    // 退出时即使服务端会话已失效，也必须清理前端登录状态。
+    // ignore — clear local state regardless
   } finally {
     clearAuth()
     router.replace('/login')
@@ -67,133 +66,105 @@ async function handleLogout() {
 </script>
 
 <style scoped>
-.admin-layout {
-  display: grid;
-  grid-template-areas:
-    "header header"
-    "sidebar main";
-  grid-template-columns: 220px 1fr;
-  grid-template-rows: 64px 1fr;
+.layout-root {
+  display: flex;
   min-height: 100vh;
-  color: #1f2937;
-  background: #f3f4f6;
 }
 
-.admin-layout__header {
-  grid-area: header;
+.layout-sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: #001529;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #002040;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-menu {
+  border-right: none !important;
+}
+
+:deep(.sidebar-menu .el-menu-item) {
+  height: 50px;
+  line-height: 50px;
+  margin: 2px 8px;
+  border-radius: 6px;
+}
+
+:deep(.sidebar-menu .el-menu-item.is-active) {
+  background-color: #1890ff !important;
+  color: #ffffff !important;
+}
+
+:deep(.sidebar-menu .el-menu-item:hover:not(.is-active)) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.layout-body {
+  flex: 1;
+  margin-left: 220px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.layout-header {
+  height: 64px;
+  background: #ffffff;
+  border-bottom: 1px solid #e8e8e8;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: #1f2937;
-  color: #ffffff;
-  border-bottom: 1px solid #111827;
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  flex-shrink: 0;
 }
 
-.admin-layout__brand {
-  font-size: 20px;
-  font-weight: 700;
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
 }
 
-.admin-layout__user {
-  font-size: 14px;
-  color: #d1d5db;
-}
-
-.admin-layout__user-area {
+.header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.admin-layout__logout {
-  min-height: 32px;
-  padding: 4px 12px;
-  border: 1px solid #4b5563;
-  border-radius: 6px;
-  background: transparent;
-  color: #ffffff;
-  cursor: pointer;
-}
-
-.admin-layout__sidebar {
-  grid-area: sidebar;
-  padding: 20px 16px;
-  background: #ffffff;
-  border-right: 1px solid #d1d5db;
-}
-
-.admin-layout__menu-title {
-  margin-bottom: 12px;
-  font-size: 14px;
-  font-weight: 700;
-  color: #4b5563;
-}
-
-.admin-layout__menu {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
 }
 
-.admin-layout__menu-item {
-  width: 100%;
-  min-height: 38px;
-  padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #f9fafb;
-  color: #1f2937;
-  font: inherit;
-  text-align: left;
-  text-decoration: none;
-  cursor: default;
+.header-username {
+  font-size: 14px;
+  color: #595959;
 }
 
-.admin-layout__menu-item--active {
-  border-color: #2563eb;
-  background: #dbeafe;
-  color: #1d4ed8;
-  font-weight: 700;
-}
-
-.admin-layout__main {
-  grid-area: main;
-  padding: 24px;
-  background: #f3f4f6;
-}
-
-@media (max-width: 720px) {
-  .admin-layout {
-    grid-template-areas:
-      "header"
-      "sidebar"
-      "main";
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr;
-  }
-
-  .admin-layout__header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-    padding: 16px;
-  }
-
-  .admin-layout__user-area {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .admin-layout__sidebar {
-    border-right: 0;
-    border-bottom: 1px solid #d1d5db;
-  }
-
-  .admin-layout__menu {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.layout-main {
+  flex: 1;
+  padding: 20px;
+  background: #f0f2f5;
 }
 </style>
