@@ -1,372 +1,159 @@
 <template>
-  <section class="user-page">
-    <header class="user-page__header">
+  <div class="page-container">
+    <div class="page-header">
       <div>
-        <h1>用户管理</h1>
-        <p>用于维护系统用户和状态</p>
+        <h2>用户管理</h2>
+        <p>维护系统用户账号与角色分配</p>
       </div>
-    </header>
-
-    <div class="user-page__actions">
-      <button type="button" @click="showCreateForm = !showCreateForm">
-        {{ showCreateForm ? '收起表单' : '新增用户' }}
-      </button>
+      <div class="page-actions">
+        <el-button :icon="Refresh" :loading="loading" @click="loadUsers">刷新</el-button>
+        <el-button type="primary" :icon="Plus" @click="openDialog">新增用户</el-button>
+      </div>
     </div>
 
-    <form v-if="showCreateForm" class="user-form" @submit.prevent="handleCreateUser">
-      <label class="user-form__field">
-        <span>用户名</span>
-        <input v-model.trim="createForm.username" type="text" autocomplete="off" />
-      </label>
+    <el-card>
+      <el-table :data="users" v-loading="loading" stripe row-key="id" empty-text="暂无用户记录">
+        <el-table-column prop="username" label="用户名" min-width="120" />
+        <el-table-column label="真实姓名" min-width="120">
+          <template #default="{ row }">{{ row.realName || '—' }}</template>
+        </el-table-column>
+        <el-table-column label="状态" width="80">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">
+              {{ row.status === 1 ? '启用' : '禁用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="角色" min-width="140">
+          <template #default="{ row }">
+            <el-tag v-for="code in (row.roleCodes || [])" :key="code" type="info" size="small" style="margin-right:4px">{{ code }}</el-tag>
+            <span v-if="!row.roleCodes?.length">—</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="创建时间" min-width="160">
+          <template #default="{ row }">{{ row.createTime?.slice(0, 19).replace('T', ' ') || '—' }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="100" fixed="right">
+          <template #default="{ row }">
+            <el-button
+              :type="row.status === 1 ? 'danger' : 'primary'"
+              size="small" link
+              :loading="statusUpdatingId === row.id"
+              @click="handleToggleStatus(row)"
+            >{{ row.status === 1 ? '禁用' : '启用' }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
-      <label class="user-form__field">
-        <span>密码</span>
-        <input v-model="createForm.password" type="password" autocomplete="new-password" />
-      </label>
-
-      <label class="user-form__field">
-        <span>真实姓名</span>
-        <input v-model.trim="createForm.realName" type="text" autocomplete="off" />
-      </label>
-
-      <label class="user-form__field">
-        <span>状态</span>
-        <select v-model.number="createForm.status" disabled>
-          <option :value="1">启用</option>
-        </select>
-        <small>新增用户由后端创建为启用状态，状态变更请使用列表操作。</small>
-      </label>
-
-      <label class="user-form__field">
-        <span>角色ID</span>
-        <input v-model.trim="createForm.roleIds" type="text" placeholder="例如：1 或 1,2" />
-      </label>
-
-      <p v-if="formError" class="user-page__error">{{ formError }}</p>
-      <p v-if="formSuccess" class="user-page__success">{{ formSuccess }}</p>
-
-      <div class="user-form__actions">
-        <button type="submit" :disabled="creating">
-          {{ creating ? '提交中...' : '提交新增' }}
-        </button>
-      </div>
-    </form>
-
-    <section class="user-list">
-      <div class="user-list__title">
-        <h2>用户列表</h2>
-        <button type="button" :disabled="loading" @click="loadUsers">
-          {{ loading ? '查询中...' : '刷新' }}
-        </button>
-      </div>
-
-      <p v-if="listError" class="user-page__error">{{ listError }}</p>
-      <p v-if="statusError" class="user-page__error">{{ statusError }}</p>
-
-      <div v-if="loading" class="user-list__state">正在加载用户列表...</div>
-      <div v-else-if="users.length === 0" class="user-list__state">暂无用户记录</div>
-      <table v-else class="user-table">
-        <thead>
-          <tr>
-            <th>用户名</th>
-            <th>真实姓名</th>
-            <th>状态</th>
-            <th>角色编码</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in users" :key="user.id">
-            <td>{{ user.username || '-' }}</td>
-            <td>{{ user.realName || '-' }}</td>
-            <td>{{ formatStatus(user.status) }}</td>
-            <td>{{ formatRoleCodes(user.roleCodes) }}</td>
-            <td>
-              <button
-                type="button"
-                :disabled="statusUpdatingUserId === user.id"
-                @click="handleToggleStatus(user)"
-              >
-                {{ statusUpdatingUserId === user.id ? '处理中...' : getStatusActionText(user.status) }}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-  </section>
+    <el-dialog v-model="dialogVisible" title="新增用户" width="480px" :close-on-click-modal="false" @open="handleDialogOpen">
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model.trim="form.username" autocomplete="off" placeholder="请输入用户名" />
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="form.password" type="password" autocomplete="new-password" show-password placeholder="请输入密码" />
+        </el-form-item>
+        <el-form-item label="真实姓名">
+          <el-input v-model.trim="form.realName" autocomplete="off" placeholder="选填" />
+        </el-form-item>
+        <el-form-item label="角色ID" prop="roleIdsInput">
+          <el-input v-model.trim="form.roleIdsInput" placeholder="输入角色ID，多个用英文逗号分隔，如: 1 或 1,2" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSubmit">提交</el-button>
+      </template>
+    </el-dialog>
+  </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { Plus, Refresh } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 import { createUser, getUsers, updateUserStatus } from '../../api/user'
 
 const users = ref([])
 const loading = ref(false)
-const creating = ref(false)
-const statusUpdatingUserId = ref(null)
-const showCreateForm = ref(false)
-const listError = ref('')
-const formError = ref('')
-const formSuccess = ref('')
-const statusError = ref('')
+const statusUpdatingId = ref(null)
+const dialogVisible = ref(false)
+const submitting = ref(false)
+const formRef = ref(null)
+const form = reactive({ username: '', password: '', realName: '', roleIdsInput: '' })
 
-const createForm = reactive({
-  username: '',
-  password: '',
-  realName: '',
-  status: 1,
-  roleIds: '',
-})
+const rules = {
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  roleIdsInput: [{ required: true, message: '请输入角色ID', trigger: 'blur' }],
+}
 
-onMounted(() => {
-  loadUsers()
-})
+onMounted(loadUsers)
 
 async function loadUsers() {
   loading.value = true
-  listError.value = ''
-  statusError.value = ''
-
   try {
     const result = await getUsers()
     users.value = Array.isArray(result) ? result : []
-  } catch (error) {
-    listError.value = error.message || '查询用户列表失败'
+  } catch (e) {
+    ElMessage.error(e.message || '查询用户列表失败')
     users.value = []
   } finally {
     loading.value = false
   }
 }
 
-async function handleCreateUser() {
-  formError.value = ''
-  formSuccess.value = ''
+function openDialog() { dialogVisible.value = true }
 
-  const roleIds = parseRoleIds(createForm.roleIds)
-  if (!createForm.username || !createForm.password || roleIds.length === 0) {
-    formError.value = '请填写用户名、密码和角色ID'
+function handleDialogOpen() {
+  Object.assign(form, { username: '', password: '', realName: '', roleIdsInput: '' })
+  nextTick(() => formRef.value?.clearValidate())
+}
+
+function parseRoleIds(input) {
+  return input.split(',').map(s => Number(s.trim())).filter(n => Number.isInteger(n) && n > 0)
+}
+
+async function handleSubmit() {
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+  const roleIds = parseRoleIds(form.roleIdsInput)
+  if (roleIds.length === 0) {
+    ElMessage.warning('角色ID格式不正确，请填写正整数，多个用英文逗号分隔')
     return
   }
-
-  if (roleIds.some((roleId) => !Number.isInteger(roleId) || roleId <= 0)) {
-    formError.value = '角色ID格式不正确，请使用逗号分隔的数字'
-    return
-  }
-
-  creating.value = true
+  submitting.value = true
   try {
-    await createUser({
-      username: createForm.username,
-      password: createForm.password,
-      realName: createForm.realName,
-      roleIds,
-    })
-    resetCreateForm()
-    showCreateForm.value = false
-    formSuccess.value = '新增用户成功'
+    await createUser({ username: form.username, password: form.password, realName: form.realName || undefined, roleIds })
+    ElMessage.success('新增用户成功')
+    dialogVisible.value = false
     await loadUsers()
-  } catch (error) {
-    formError.value = error.message || '新增用户失败'
+  } catch (e) {
+    ElMessage.error(e.message || '新增用户失败')
   } finally {
-    creating.value = false
+    submitting.value = false
   }
 }
 
-async function handleToggleStatus(user) {
-  statusError.value = ''
-  statusUpdatingUserId.value = user.id
-
+async function handleToggleStatus(row) {
+  statusUpdatingId.value = row.id
   try {
-    await updateUserStatus({
-      userId: user.id,
-      status: user.status === 1 ? 0 : 1,
-    })
+    await updateUserStatus({ userId: row.id, status: row.status === 1 ? 0 : 1 })
+    ElMessage.success('状态更新成功')
     await loadUsers()
-  } catch (error) {
-    statusError.value = error.message || '更新用户状态失败'
+  } catch (e) {
+    ElMessage.error(e.message || '状态更新失败')
   } finally {
-    statusUpdatingUserId.value = null
+    statusUpdatingId.value = null
   }
-}
-
-function parseRoleIds(value) {
-  const parts = value
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item)
-
-  return parts.map((item) => Number(item))
-}
-
-function resetCreateForm() {
-  createForm.username = ''
-  createForm.password = ''
-  createForm.realName = ''
-  createForm.status = 1
-  createForm.roleIds = ''
-}
-
-function formatStatus(status) {
-  if (status === 1) {
-    return '启用'
-  }
-  if (status === 0) {
-    return '禁用'
-  }
-  return status ?? '-'
-}
-
-function getStatusActionText(status) {
-  return status === 1 ? '禁用' : '启用'
-}
-
-function formatRoleCodes(roleCodes) {
-  if (!Array.isArray(roleCodes) || roleCodes.length === 0) {
-    return '-'
-  }
-  return roleCodes.join(', ')
 }
 </script>
 
 <style scoped>
-.user-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.user-page__header h1 {
-  margin-bottom: 8px;
-  font-size: 24px;
-  color: #111827;
-}
-
-.user-page__header p {
-  color: #4b5563;
-}
-
-.user-page__actions,
-.user-list__title,
-.user-form__actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-page button {
-  min-height: 36px;
-  padding: 6px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #ffffff;
-  color: #111827;
-  cursor: pointer;
-}
-
-.user-page button:disabled {
-  color: #6b7280;
-  cursor: not-allowed;
-}
-
-.user-form,
-.user-list {
-  padding: 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-.user-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.user-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  color: #374151;
-  font-size: 14px;
-}
-
-.user-form__field input,
-.user-form__field select {
-  min-height: 38px;
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-}
-
-.user-form__field small {
-  color: #6b7280;
-}
-
-.user-form__actions,
-.user-page__error,
-.user-page__success {
-  grid-column: 1 / -1;
-}
-
-.user-page__error {
-  padding: 10px 12px;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-.user-page__success {
-  padding: 10px 12px;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
-  background: #f0fdf4;
-  color: #15803d;
-}
-
-.user-list {
-  overflow-x: auto;
-}
-
-.user-list__title {
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.user-list__title h2 {
-  font-size: 18px;
-  color: #111827;
-}
-
-.user-list__state {
-  padding: 24px;
-  color: #6b7280;
-  text-align: center;
-}
-
-.user-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.user-table th,
-.user-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.user-table th {
-  background: #f9fafb;
-  color: #374151;
-  font-weight: 700;
-}
-
-@media (max-width: 720px) {
-  .user-form {
-    grid-template-columns: 1fr;
-  }
-}
+.page-container { display: flex; flex-direction: column; gap: 16px; }
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; }
+.page-header h2 { font-size: 18px; font-weight: 600; color: #262626; margin-bottom: 4px; }
+.page-header p { font-size: 13px; color: #8c8c8c; }
+.page-actions { display: flex; gap: 8px; flex-shrink: 0; }
 </style>
