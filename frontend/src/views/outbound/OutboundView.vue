@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2>出库管理</h2>
-        <p>记录商品出库操作，库存不足时系统拒绝出库</p>
+        <p>出库操作将减少上架库存，若上架库存不足请先在库存页补货</p>
       </div>
       <div class="page-actions">
         <el-button :icon="Refresh" :loading="loading" @click="loadOutbounds">刷新</el-button>
@@ -108,7 +108,8 @@ async function handleSubmit() {
     dialogVisible.value = false
     await loadOutbounds()
   } catch (e) {
-    ElMessage.error(e.message || '出库失败')
+    const msg = e.message || '出库失败'
+    ElMessage.error(msg.includes('上架库存不足') ? msg + '，请前往库存管理页进行补货操作' : msg)
   } finally {
     submitting.value = false
   }

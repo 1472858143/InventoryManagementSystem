@@ -98,6 +98,11 @@ const router = createRouter({
           name: 'system',
           component: SystemView,
         },
+        {
+          path: 'categories',
+          name: 'categories',
+          component: () => import('../views/category/CategoryView.vue'),
+        },
       ],
     },
     {

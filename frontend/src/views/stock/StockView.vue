@@ -12,31 +12,39 @@
       <el-table :data="stocks" v-loading="loading" stripe row-key="productId" empty-text="暂无库存记录">
         <el-table-column prop="productCode" label="商品编号" width="120" />
         <el-table-column prop="productName" label="商品名称" min-width="140" />
-        <el-table-column label="当前库存" width="100">
+        <el-table-column prop="unit" label="单位" width="70" />
+        <el-table-column label="仓库库存" width="100">
           <template #default="{ row }">
-            <el-text :type="row.quantity < row.minStock ? 'danger' : 'success'" tag="b">{{ row.quantity }}</el-text>
+            <el-text>{{ row.warehouseQuantity }}</el-text>
+          </template>
+        </el-table-column>
+        <el-table-column label="上架库存" width="100">
+          <template #default="{ row }">
+            <el-text :type="row.shelfQuantity < row.minStock ? 'danger' : ''">{{ row.shelfQuantity }}</el-text>
           </template>
         </el-table-column>
         <el-table-column prop="minStock" label="下限" width="80" />
         <el-table-column prop="maxStock" label="上限" width="80" />
         <el-table-column label="预警状态" width="100">
           <template #default="{ row }">
-            <el-tag v-if="row.quantity < row.minStock" type="danger" size="small">库存不足</el-tag>
-            <el-tag v-else-if="row.quantity > row.maxStock" type="warning" size="small">库存过多</el-tag>
+            <el-tag v-if="row.shelfQuantity < row.minStock" type="danger" size="small">上架不足</el-tag>
+            <el-tag v-else-if="row.shelfQuantity > row.maxStock" type="warning" size="small">上架过多</el-tag>
             <el-tag v-else type="success" size="small">正常</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="更新时间" min-width="160">
           <template #default="{ row }">{{ row.updateTime?.slice(0, 19).replace('T', ' ') || '—' }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="110" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" link @click="openDialog(row)">设置上下限</el-button>
+            <el-button type="primary" size="small" link :icon="Sort" @click="openRestockDialog(row)">补货</el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
 
+    <!-- 设置库存上下限 Dialog -->
     <el-dialog v-model="dialogVisible" title="设置库存上下限" width="400px" :close-on-click-modal="false">
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="商品">
@@ -54,14 +62,53 @@
         <el-button type="primary" :loading="submitting" @click="handleSubmit">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 补货 Dialog -->
+    <el-dialog
+      v-model="restockDialogVisible"
+      title="商品补货"
+      width="400px"
+      :close-on-click-modal="false"
+      @open="handleRestockDialogOpen"
+    >
+      <el-form ref="restockFormRef" :model="restockForm" :rules="restockRules" label-width="100px">
+        <el-form-item label="商品名称">
+          <el-text>{{ currentRestockProduct?.productName }}</el-text>
+        </el-form-item>
+        <el-form-item label="当前仓库库存">
+          <el-text>{{ currentRestockProduct?.warehouseQuantity }}</el-text>
+        </el-form-item>
+        <el-form-item label="当前上架库存">
+          <el-text>{{ currentRestockProduct?.shelfQuantity }}</el-text>
+        </el-form-item>
+        <el-form-item label="补货数量" prop="quantity">
+          <el-input-number
+            v-model="restockForm.quantity"
+            :min="1"
+            :max="currentRestockProduct?.warehouseQuantity"
+            :precision="0"
+            :step="1"
+            style="width:100%"
+          />
+        </el-form-item>
+        <el-form-item label="操作人" prop="operator">
+          <el-input v-model="restockForm.operator" readonly />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="restockDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="restockSubmitting" @click="handleRestockSubmit">确认补货</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { Refresh } from '@element-plus/icons-vue'
+import { Refresh, Sort } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { nextTick, onMounted, reactive, ref } from 'vue'
-import { getStocks, updateStockLimit } from '../../api/stock'
+import { getStocks, updateStockLimit, restockProduct } from '../../api/stock'
+import { authState } from '../../stores/auth'
 
 const stocks = ref([])
 const loading = ref(false)
@@ -71,9 +118,20 @@ const formRef = ref(null)
 const currentProduct = ref(null)
 const form = reactive({ minStock: 0, maxStock: 0 })
 
+const restockDialogVisible = ref(false)
+const restockSubmitting = ref(false)
+const restockFormRef = ref(null)
+const currentRestockProduct = ref(null)
+const restockForm = reactive({ quantity: 1, operator: '' })
+
 const rules = {
   minStock: [{ required: true, message: '请输入库存下限', trigger: 'change', type: 'number' }],
   maxStock: [{ required: true, message: '请输入库存上限', trigger: 'change', type: 'number' }],
+}
+
+const restockRules = {
+  quantity: [{ required: true, message: '请输入补货数量', trigger: 'change', type: 'number' }],
+  operator: [{ required: true, message: '操作人不能为空', trigger: 'blur' }],
 }
 
 onMounted(loadStocks)
@@ -112,6 +170,36 @@ async function handleSubmit() {
     ElMessage.error(e.message || '更新失败')
   } finally {
     submitting.value = false
+  }
+}
+
+function openRestockDialog(row) {
+  currentRestockProduct.value = row
+  restockForm.quantity = 1
+  restockDialogVisible.value = true
+}
+
+function handleRestockDialogOpen() {
+  restockForm.operator = authState.currentUser?.username || ''
+  nextTick(() => restockFormRef.value?.clearValidate())
+}
+
+async function handleRestockSubmit() {
+  const valid = await restockFormRef.value.validate().catch(() => false)
+  if (!valid) return
+  restockSubmitting.value = true
+  try {
+    await restockProduct(currentRestockProduct.value.productId, {
+      quantity: restockForm.quantity,
+      operator: restockForm.operator,
+    })
+    ElMessage.success('补货成功')
+    restockDialogVisible.value = false
+    await loadStocks()
+  } catch (e) {
+    ElMessage.error(e.message || '补货失败')
+  } finally {
+    restockSubmitting.value = false
   }
 }
 </script>

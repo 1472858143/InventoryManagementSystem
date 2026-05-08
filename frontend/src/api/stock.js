@@ -14,3 +14,10 @@ export function updateStockLimit(productId, payload) {
     body: payload,
   })
 }
+
+export function restockProduct(productId, payload) {
+  return request(`/stocks/${productId}/restock`, {
+    method: 'POST',
+    body: payload,
+  })
+}
