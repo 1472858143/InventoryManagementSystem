@@ -8,12 +8,14 @@
         INSERT INTO stock_log (
             product_id,
             change_type,
+            stock_type,
             change_quantity,
             before_quantity,
             after_quantity
         ) VALUES (
             #{productId},
             #{changeType},
+            #{stockType},
             #{changeQuantity},
             #{beforeQuantity},
             #{afterQuantity}

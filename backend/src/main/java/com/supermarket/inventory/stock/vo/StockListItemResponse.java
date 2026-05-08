@@ -6,9 +6,10 @@ public record StockListItemResponse(
     Long productId,
     String productCode,
     String productName,
-    Integer quantity,
+    String unit,
+    Integer warehouseQuantity,
+    Integer shelfQuantity,
     Integer minStock,
     Integer maxStock,
     LocalDateTime updateTime
-) {
-}
+) {}

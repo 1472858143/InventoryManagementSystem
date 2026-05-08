@@ -7,12 +7,10 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class Stock {
+public class RestockOrder {
     private Long id;
     private Long productId;
-    private Integer warehouseQuantity;
-    private Integer shelfQuantity;
-    private Integer minStock;
-    private Integer maxStock;
-    private LocalDateTime updateTime;
+    private Integer quantity;
+    private String operator;
+    private LocalDateTime createTime;
 }

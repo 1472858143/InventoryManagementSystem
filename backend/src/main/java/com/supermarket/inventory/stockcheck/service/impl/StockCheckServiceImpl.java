@@ -33,7 +33,7 @@ public class StockCheckServiceImpl implements StockCheckService {
         validateCreateRequest(request);
 
         StockDetailResponse stock = stockService.getStockByProductId(request.productId());
-        Integer systemQuantity = stock.quantity();
+        Integer systemQuantity = stock.warehouseQuantity() + stock.shelfQuantity();
         Integer difference = request.actualQuantity() - systemQuantity;
 
         StockCheck stockCheck = new StockCheck();
