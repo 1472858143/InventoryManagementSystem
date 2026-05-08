@@ -104,7 +104,6 @@ public class StockServiceImpl implements StockService {
     @Override
     @Transactional
     public void restockStock(Long productId, Integer quantity, String operator) {
-        if (productId == null) throw new BusinessException(400, "商品ID不能为空");
         if (operator == null || operator.isBlank()) throw new BusinessException(400, "操作人不能为空");
         Stock stock = requireExistingStock(productId);
         StockChangeResult result = stockDomainService.restock(

@@ -47,7 +47,7 @@ public class StockController {
     }
 
     @PostMapping("/{productId}/restock")
-    public ApiResponse<Void> restock(@PathVariable Long productId, @RequestBody RestockRequest request) {
+    public ApiResponse<Void> restock(@PathVariable Long productId, @RequestBody @Valid RestockRequest request) {
         stockService.restockStock(productId, request.quantity(), request.operator());
         return ApiResponse.success();
     }

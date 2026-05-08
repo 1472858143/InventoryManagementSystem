@@ -4,6 +4,7 @@ import com.supermarket.inventory.category.dto.CategoryCreateRequest;
 import com.supermarket.inventory.category.dto.CategoryStatusUpdateRequest;
 import com.supermarket.inventory.category.service.CategoryService;
 import com.supermarket.inventory.category.vo.CategoryListItemResponse;
+import com.supermarket.inventory.common.response.ApiResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/categories")
+@RequestMapping("/api/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -25,22 +26,23 @@ public class CategoryController {
     }
 
     @GetMapping
-    public List<CategoryListItemResponse> listCategories() {
-        return categoryService.listCategories();
+    public ApiResponse<List<CategoryListItemResponse>> listCategories() {
+        return ApiResponse.success(categoryService.listCategories());
     }
 
     @GetMapping("/enabled")
-    public List<CategoryListItemResponse> listEnabledCategories() {
-        return categoryService.listEnabledCategories();
+    public ApiResponse<List<CategoryListItemResponse>> listEnabledCategories() {
+        return ApiResponse.success(categoryService.listEnabledCategories());
     }
 
     @PostMapping
-    public CategoryListItemResponse createCategory(@RequestBody CategoryCreateRequest request) {
-        return categoryService.createCategory(request.categoryName());
+    public ApiResponse<CategoryListItemResponse> createCategory(@RequestBody CategoryCreateRequest request) {
+        return ApiResponse.success(categoryService.createCategory(request.categoryName()));
     }
 
     @PutMapping("/{id}/status")
-    public void updateStatus(@PathVariable Long id, @RequestBody CategoryStatusUpdateRequest request) {
+    public ApiResponse<Void> updateStatus(@PathVariable Long id, @RequestBody CategoryStatusUpdateRequest request) {
         categoryService.updateStatus(id, request.status());
+        return ApiResponse.success();
     }
 }

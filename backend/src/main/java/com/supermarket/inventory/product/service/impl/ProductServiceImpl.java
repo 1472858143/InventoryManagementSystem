@@ -34,13 +34,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDetailResponse createProduct(ProductCreateRequest request) {
+        validateCreateRequest(request);
+        validatePriceRules(request.purchasePrice(), request.salePrice());
+
         Product existingProduct = productMapper.findByProductCode(request.productCode());
         if (existingProduct != null) {
             throw new BusinessException(400, "商品编码已存在");
         }
-
-        validateCreateRequest(request);
-        validatePriceRules(request.purchasePrice(), request.salePrice());
 
         // validate category exists and is enabled
         if (request.categoryId() == null) {

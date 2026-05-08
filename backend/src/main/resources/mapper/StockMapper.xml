@@ -38,7 +38,7 @@
 
     <select id="findEntityByProductId" parameterType="long" resultType="com.supermarket.inventory.stock.entity.Stock">
         SELECT
-            id AS id,
+            id,
             product_id AS productId,
             warehouse_quantity AS warehouseQuantity,
             shelf_quantity AS shelfQuantity,
