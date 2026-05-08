@@ -105,7 +105,7 @@ const rules = {
   salePrice: [{ required: true, message: '请输入售价', trigger: 'change', type: 'number' }],
 }
 
-onMounted(() => Promise.all([loadProducts(), loadCategories()]))
+onMounted(loadProducts)
 
 async function loadProducts() {
   loading.value = true
@@ -131,8 +131,13 @@ async function loadCategories() {
 
 function openDialog() { dialogVisible.value = true }
 
-function handleDialogOpen() {
-  Object.assign(form, { productCode: '', productName: '', categoryId: null, unit: '件', purchasePrice: null, salePrice: null })
+async function handleDialogOpen() {
+  Object.assign(form, {
+    productCode: '', productName: '',
+    categoryId: null, unit: '件',
+    purchasePrice: null, salePrice: null
+  })
+  await loadCategories()  // 在 Dialog 打开时刷新分类
   nextTick(() => formRef.value?.clearValidate())
 }
 

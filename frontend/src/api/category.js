@@ -1,6 +1,14 @@
 import { request } from '../utils/request'
 
-export const getCategories = () => request('/categories')
-export const getEnabledCategories = () => request('/categories/enabled')
-export const createCategory = (payload) => request('/categories', { method: 'POST', body: payload })
-export const updateCategoryStatus = (id, payload) => request(`/categories/${id}/status`, { method: 'PUT', body: payload })
+export function getCategories() {
+  return request('/categories')
+}
+export function getEnabledCategories() {
+  return request('/categories/enabled')
+}
+export function createCategory(payload) {
+  return request('/categories', { method: 'POST', body: payload })
+}
+export function updateCategoryStatus(id, payload) {
+  return request(`/categories/${id}/status`, { method: 'PUT', body: payload })
+}

@@ -28,7 +28,7 @@
         <el-table-column label="预警状态" width="100">
           <template #default="{ row }">
             <el-tag v-if="row.shelfQuantity < row.minStock" type="danger" size="small">上架不足</el-tag>
-            <el-tag v-else-if="row.shelfQuantity > row.maxStock" type="warning" size="small">上架过多</el-tag>
+            <el-tag v-else-if="row.maxStock > 0 && row.shelfQuantity > row.maxStock" type="warning" size="small">上架过多</el-tag>
             <el-tag v-else type="success" size="small">正常</el-tag>
           </template>
         </el-table-column>
@@ -38,7 +38,7 @@
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" link @click="openDialog(row)">设置上下限</el-button>
-            <el-button type="primary" size="small" link :icon="Sort" @click="openRestockDialog(row)">补货</el-button>
+            <el-button type="primary" size="small" link :icon="Sort" :disabled="row.warehouseQuantity <= 0" @click="openRestockDialog(row)">补货</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -126,11 +126,31 @@ const restockForm = reactive({ quantity: 1, operator: '' })
 
 const rules = {
   minStock: [{ required: true, message: '请输入库存下限', trigger: 'change', type: 'number' }],
-  maxStock: [{ required: true, message: '请输入库存上限', trigger: 'change', type: 'number' }],
+  maxStock: [
+    { required: true, message: '请输入库存上限', trigger: 'change', type: 'number' },
+    {
+      validator: (rule, value, callback) => {
+        if (value < form.minStock) callback(new Error('上限不能低于下限'))
+        else callback()
+      },
+      trigger: 'change'
+    }
+  ],
 }
 
 const restockRules = {
-  quantity: [{ required: true, message: '请输入补货数量', trigger: 'change', type: 'number' }],
+  quantity: [
+    { required: true, message: '请输入补货数量', trigger: 'change', type: 'number' },
+    {
+      validator: (rule, value, callback) => {
+        const max = currentRestockProduct.value?.warehouseQuantity ?? 0
+        if (!value || value < 1) return callback(new Error('请输入补货数量'))
+        if (value > max) return callback(new Error(`补货数量不能超过仓库库存(${max})`))
+        callback()
+      },
+      trigger: 'change'
+    }
+  ],
   operator: [{ required: true, message: '操作人不能为空', trigger: 'blur' }],
 }
 
@@ -175,11 +195,11 @@ async function handleSubmit() {
 
 function openRestockDialog(row) {
   currentRestockProduct.value = row
-  restockForm.quantity = 1
   restockDialogVisible.value = true
 }
 
 function handleRestockDialogOpen() {
+  restockForm.quantity = 1
   restockForm.operator = authState.currentUser?.username || ''
   nextTick(() => restockFormRef.value?.clearValidate())
 }
