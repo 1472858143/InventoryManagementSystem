@@ -23,6 +23,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 "/api/users/**",
                 "/api/products",
                 "/api/products/**",
+                "/api/categories",
+                "/api/categories/**",
                 "/api/inbounds",
                 "/api/inbounds/**",
                 "/api/outbounds",
@@ -30,7 +32,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 "/api/stockchecks",
                 "/api/stockchecks/**",
                 "/api/stocks",
-                "/api/stocks/**"
+                "/api/stocks/**",
+                "/api/reports",
+                "/api/reports/**",
+                "/api/system",
+                "/api/system/**"
             )
             .excludePathPatterns("/api/auth/login");
     }

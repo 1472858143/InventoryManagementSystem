@@ -1,10 +1,15 @@
 package com.supermarket.inventory.report.vo;
 
-public record StockOverviewItem(
-    String productName,
-    Integer warehouseQuantity,
-    Integer shelfQuantity,
-    Integer totalQuantity,
-    Integer minStock,
-    Integer maxStock
-) {}
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class StockOverviewItem {
+    private String productName;
+    private Integer warehouseQuantity;
+    private Integer shelfQuantity;
+    private Integer totalQuantity;
+    private Integer minStock;
+    private Integer maxStock;
+}

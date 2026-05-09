@@ -1,6 +1,11 @@
 package com.supermarket.inventory.report.vo;
 
-public record TrendItem(
-    String date,
-    Integer count
-) {}
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class TrendItem {
+    private String date;
+    private Integer count;
+}
