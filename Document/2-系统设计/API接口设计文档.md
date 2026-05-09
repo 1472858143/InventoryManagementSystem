@@ -69,12 +69,21 @@ Authorization: Bearer <token>
 | 库存 | `GET` | `/api/stocks` | 查询库存列表 | 是 |
 | 库存 | `GET` | `/api/stocks/{productId}` | 查询指定商品库存 | 是 |
 | 库存 | `PUT` | `/api/stocks/{productId}/limit` | 更新库存上下限 | 是 |
+| 库存 | `POST` | `/api/stocks/{productId}/restock` | 商品补货（仓库→货架） | 是 |
 | 入库 | `POST` | `/api/inbounds` | 创建入库单 | 是 |
 | 入库 | `GET` | `/api/inbounds` | 查询入库记录 | 是 |
 | 出库 | `POST` | `/api/outbounds` | 创建出库单 | 是 |
 | 出库 | `GET` | `/api/outbounds` | 查询出库记录 | 是 |
 | 盘点 | `POST` | `/api/stockchecks` | 创建盘点记录 | 是 |
 | 盘点 | `GET` | `/api/stockchecks` | 查询盘点记录 | 是 |
+| 分类 | `GET` | `/api/categories` | 查询分类列表（含状态） | 是 |
+| 分类 | `GET` | `/api/categories/enabled` | 查询启用分类列表 | 是 |
+| 分类 | `POST` | `/api/categories` | 新增分类 | 是 |
+| 分类 | `PUT` | `/api/categories/status` | 更新分类状态 | 是 |
+| 系统 | `GET` | `/api/system/info` | 查询系统信息 | 是 |
+| 报表 | `GET` | `/api/reports/stock-overview` | 库存总览数据 | 是 |
+| 报表 | `GET` | `/api/reports/inbound-trend` | 近 30 天入库趋势 | 是 |
+| 报表 | `GET` | `/api/reports/outbound-trend` | 近 30 天出库趋势 | 是 |
 
 ## 3. 认证接口
 
@@ -345,7 +354,9 @@ Authorization: Bearer <token>
     "productId": 1,
     "productCode": "P001",
     "productName": "矿泉水",
-    "quantity": 100,
+    "unit": "瓶",
+    "warehouseQuantity": 80,
+    "shelfQuantity": 20,
     "minStock": 10,
     "maxStock": 500,
     "updateTime": "2026-05-07T10:00:00"
@@ -372,7 +383,9 @@ Authorization: Bearer <token>
   "productId": 1,
   "productCode": "P001",
   "productName": "矿泉水",
-  "quantity": 100,
+  "unit": "瓶",
+  "warehouseQuantity": 80,
+  "shelfQuantity": 20,
   "minStock": 10,
   "maxStock": 500,
   "updateTime": "2026-05-07T10:00:00"
@@ -408,6 +421,40 @@ Authorization: Bearer <token>
 | `maxStock` | number | 是 | 不能小于 `0`，不能低于 `minStock` |
 
 成功响应 `data` 为 `null`。库存记录不存在返回 `404`。
+
+### 6.4 商品补货
+
+`POST /api/stocks/{productId}/restock`
+
+路径参数：
+
+| 字段 | 类型 | 必填 | 规则 |
+| --- | --- | --- | --- |
+| `productId` | number | 是 | 商品 ID |
+
+请求体：
+
+```json
+{
+  "quantity": 30,
+  "operator": "张三"
+}
+```
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 规则 |
+| --- | --- | --- | --- |
+| `quantity` | number | 是 | 必须大于 `0`，不得超过当前仓库库存 |
+| `operator` | string | 是 | 不能为空 |
+
+成功响应 `data` 为 `null`。
+
+业务规则：
+
+- 补货将指定数量从仓库库存（`warehouseQuantity`）扣减，加入货架库存（`shelfQuantity`）。
+- 补货数量不得超过当前仓库库存，超出时返回 `400`。
+- 商品库存记录不存在时返回 `404`。
 
 ## 7. 入库接口
 
@@ -610,16 +657,152 @@ Authorization: Bearer <token>
 
 返回空数据时 `data` 为 `[]`。
 
-## 10. 数据模型汇总
+## 10. 分类接口
 
-### 10.1 通用状态
+### 10.1 查询分类列表
+
+`GET /api/categories`
+
+成功响应 `data`：
+
+```json
+[
+  {
+    "id": 1,
+    "categoryName": "饮料",
+    "status": 1,
+    "createTime": "2026-05-07T10:00:00"
+  }
+]
+```
+
+### 10.2 查询启用分类列表
+
+`GET /api/categories/enabled`
+
+仅返回 `status = 1` 的分类，用于商品新增时的分类下拉选项。
+
+成功响应格式同 10.1，`data` 仅含启用记录。
+
+### 10.3 新增分类
+
+`POST /api/categories`
+
+请求体：
+
+```json
+{
+  "categoryName": "零食"
+}
+```
+
+请求字段：
+
+| 字段 | 类型 | 必填 | 规则 |
+| --- | --- | --- | --- |
+| `categoryName` | string | 是 | 不能为空，不能与现有分类名称重复 |
+
+成功响应 `data`：
+
+```json
+{
+  "id": 2,
+  "categoryName": "零食",
+  "status": 1,
+  "createTime": "2026-05-07T10:00:00"
+}
+```
+
+### 10.4 更新分类状态
+
+`PUT /api/categories/status`
+
+请求体：
+
+```json
+{
+  "categoryId": 1,
+  "status": 0
+}
+```
+
+成功响应 `data` 为 `null`。分类不存在时返回 `404`。
+
+## 11. 系统接口
+
+### 11.1 查询系统信息
+
+`GET /api/system/info`
+
+无请求参数。
+
+成功响应 `data`：
+
+```json
+{
+  "systemName": "超市库存管理系统",
+  "version": "V1.0.0",
+  "frontendFramework": "Vue 3 + Element Plus",
+  "backendFramework": "Spring Boot",
+  "database": "MySQL 8.0.44",
+  "deploymentEnv": "华为云 ECS"
+}
+```
+
+## 12. 报表接口
+
+### 12.1 库存总览数据
+
+`GET /api/reports/stock-overview`
+
+成功响应 `data`：
+
+```json
+[
+  {
+    "productName": "矿泉水",
+    "warehouseQuantity": 80,
+    "shelfQuantity": 20,
+    "totalQuantity": 100,
+    "minStock": 10,
+    "maxStock": 500
+  }
+]
+```
+
+按 `totalQuantity` 降序排列，前端取前 20 条渲染图表。
+
+### 12.2 近 30 天入库趋势
+
+`GET /api/reports/inbound-trend`
+
+成功响应 `data`：
+
+```json
+[
+  { "date": "2026-04-10", "count": 3 },
+  { "date": "2026-04-12", "count": 1 }
+]
+```
+
+仅返回有记录的日期，前端补零填充完整 30 天。
+
+### 12.3 近 30 天出库趋势
+
+`GET /api/reports/outbound-trend`
+
+格式同 12.2，数据来源为出库记录表。
+
+## 13. 数据模型汇总
+
+### 13.1 通用状态
 
 | 字段值 | 说明 |
 | --- | --- |
 | `0` | 禁用 |
 | `1` | 启用 |
 
-### 10.2 主要响应模型
+### 13.2 主要响应模型
 
 | 模型 | 字段 |
 | --- | --- |
@@ -627,12 +810,12 @@ Authorization: Bearer <token>
 | `CurrentUserResponse` | `userId`, `username` |
 | `UserDetailResponse` / `UserListItemResponse` | `id`, `username`, `realName`, `status`, `roleCodes`, `createTime` |
 | `ProductDetailResponse` / `ProductListItemResponse` | `id`, `productCode`, `productName`, `category`, `purchasePrice`, `salePrice`, `status`, `createTime` |
-| `StockDetailResponse` / `StockListItemResponse` | `productId`, `productCode`, `productName`, `quantity`, `minStock`, `maxStock`, `updateTime` |
+| `StockDetailResponse` / `StockListItemResponse` | `productId`, `productCode`, `productName`, `unit`, `warehouseQuantity`, `shelfQuantity`, `minStock`, `maxStock`, `updateTime` |
 | `InboundDetailResponse` / `InboundListItemResponse` | `id`, `productId`, `productCode`, `productName`, `quantity`, `operator`, `createTime` |
 | `OutboundDetailResponse` / `OutboundListItemResponse` | `id`, `productId`, `productCode`, `productName`, `quantity`, `operator`, `createTime` |
 | `StockCheckDetailResponse` / `StockCheckListItemResponse` | `id`, `productId`, `productCode`, `productName`, `systemQuantity`, `actualQuantity`, `difference`, `checkTime` |
 
-## 11. 后续扩展建议
+## 14. 后续扩展建议
 
 - 列表接口目前未设计分页、筛选和排序；数据量增加后建议统一增加 `pageNum`、`pageSize`、`keyword` 等查询参数。
 - 当前状态更新接口使用请求体传 ID；后续可改为更 REST 风格的 `PUT /api/products/{id}/status`、`PUT /api/users/{id}/status`。

@@ -37,9 +37,7 @@ import { Refresh } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { ElMessage } from 'element-plus'
 import { onMounted, onUnmounted, ref } from 'vue'
-import { getInbounds } from '../../api/inbound'
-import { getOutbounds } from '../../api/outbound'
-import { getStocks } from '../../api/stock'
+import { getInboundTrend, getOutboundTrend, getStockOverview } from '../../api/report'
 
 const loading = ref(false)
 const stockChartRef = ref(null)
@@ -57,18 +55,14 @@ function getLast30Days() {
   })
 }
 
-function aggregateByDay(records, dateField) {
+function mergeTrendData(serverData) {
   const days = getLast30Days()
-  const counts = Object.fromEntries(days.map(d => [d, 0]))
-  for (const r of records) {
-    const day = String(r[dateField] || '').slice(0, 10)
-    if (day in counts) counts[day]++
-  }
-  return { days, values: days.map(d => counts[d]) }
+  const countMap = Object.fromEntries((serverData || []).map(item => [item.date, item.count]))
+  return { days, values: days.map(d => countMap[d] || 0) }
 }
 
 function renderStockChart(stocks) {
-  const sorted = [...stocks].sort((a, b) => b.quantity - a.quantity).slice(0, 20)
+  const sorted = [...stocks].sort((a, b) => b.totalQuantity - a.totalQuantity).slice(0, 20)
   stockChart.setOption({
     tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
     grid: { left: '22%', right: '5%', top: 16, bottom: 16 },
@@ -82,8 +76,8 @@ function renderStockChart(stocks) {
       name: '库存量',
       type: 'bar',
       data: sorted.map(s => ({
-        value: s.quantity,
-        itemStyle: { color: s.quantity < s.minStock ? '#ff4d4f' : '#1890ff' },
+        value: s.totalQuantity,
+        itemStyle: { color: s.shelfQuantity < s.minStock ? '#ff4d4f' : '#1890ff' },
       })),
     }],
   }, true)
@@ -115,15 +109,15 @@ function makeTrendOption(data, color) {
 async function loadData() {
   loading.value = true
   try {
-    const [stocks, inbounds, outbounds] = await Promise.all([getStocks(), getInbounds(), getOutbounds()])
+    const [stockItems, inboundTrend, outboundTrend] = await Promise.all([getStockOverview(), getInboundTrend(), getOutboundTrend()])
 
     if (!stockChart) stockChart = echarts.init(stockChartRef.value)
     if (!inboundChart) inboundChart = echarts.init(inboundChartRef.value)
     if (!outboundChart) outboundChart = echarts.init(outboundChartRef.value)
 
-    renderStockChart(Array.isArray(stocks) ? stocks : [])
-    inboundChart.setOption(makeTrendOption(aggregateByDay(inbounds || [], 'createTime'), '#52c41a'), true)
-    outboundChart.setOption(makeTrendOption(aggregateByDay(outbounds || [], 'createTime'), '#fa8c16'), true)
+    renderStockChart(Array.isArray(stockItems) ? stockItems : [])
+    inboundChart.setOption(makeTrendOption(mergeTrendData(inboundTrend || []), '#52c41a'), true)
+    outboundChart.setOption(makeTrendOption(mergeTrendData(outboundTrend || []), '#fa8c16'), true)
   } catch (e) {
     ElMessage.error(e.message || '加载报表数据失败')
   } finally {

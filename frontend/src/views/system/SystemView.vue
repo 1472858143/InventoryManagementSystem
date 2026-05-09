@@ -7,15 +7,15 @@
 
     <el-row :gutter="16">
       <el-col :xs="24" :md="12">
-        <el-card>
+        <el-card v-loading="sysLoading">
           <template #header><el-icon style="vertical-align:middle;margin-right:6px"><Monitor /></el-icon>系统信息</template>
           <el-descriptions :column="1" border>
-            <el-descriptions-item label="系统名称">超市库存管理系统</el-descriptions-item>
-            <el-descriptions-item label="当前版本">V1.0.0</el-descriptions-item>
-            <el-descriptions-item label="前端框架">Vue 3 + Element Plus</el-descriptions-item>
-            <el-descriptions-item label="后端框架">Spring Boot</el-descriptions-item>
-            <el-descriptions-item label="数据库">MySQL 8.0.44</el-descriptions-item>
-            <el-descriptions-item label="部署环境">华为云 ECS</el-descriptions-item>
+            <el-descriptions-item label="系统名称">{{ sysInfo.systemName || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="当前版本">{{ sysInfo.version || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="前端框架">{{ sysInfo.frontendFramework || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="后端框架">{{ sysInfo.backendFramework || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="数据库">{{ sysInfo.database || '—' }}</el-descriptions-item>
+            <el-descriptions-item label="部署环境">{{ sysInfo.deploymentEnv || '—' }}</el-descriptions-item>
           </el-descriptions>
         </el-card>
       </el-col>
@@ -45,11 +45,27 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
 import { authState } from '../../stores/auth'
+import { getSystemInfo } from '../../api/system'
 
 const currentUser = computed(() => authState.currentUser)
 const roles = computed(() => authState.roles)
+
+const sysLoading = ref(false)
+const sysInfo = reactive({})
+
+onMounted(async () => {
+  sysLoading.value = true
+  try {
+    const data = await getSystemInfo()
+    Object.assign(sysInfo, data)
+  } catch {
+    // leave sysInfo empty; template falls back to '—'
+  } finally {
+    sysLoading.value = false
+  }
+})
 
 const modules = [
   { name: '用户管理', route: '/users', description: '维护系统用户账号与角色分配，支持启用/禁用' },
