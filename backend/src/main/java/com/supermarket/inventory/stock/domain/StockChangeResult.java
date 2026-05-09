@@ -5,8 +5,10 @@ import com.supermarket.inventory.stock.enums.StockChangeTypeEnum;
 public record StockChangeResult(
     Long productId,
     StockChangeTypeEnum changeType,
-    Integer changeQuantity,
-    Integer beforeQuantity,
-    Integer afterQuantity
-) {
-}
+    Integer warehouseChangeQuantity,
+    Integer shelfChangeQuantity,
+    Integer beforeWarehouseQuantity,
+    Integer afterWarehouseQuantity,
+    Integer beforeShelfQuantity,
+    Integer afterShelfQuantity
+) {}

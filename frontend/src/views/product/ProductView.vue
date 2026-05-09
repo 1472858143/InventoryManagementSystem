@@ -15,7 +15,8 @@
       <el-table :data="products" v-loading="loading" stripe row-key="id" empty-text="暂无商品记录">
         <el-table-column prop="productCode" label="商品编号" width="120" />
         <el-table-column prop="productName" label="商品名称" min-width="140" />
-        <el-table-column prop="category" label="分类" width="100" />
+        <el-table-column prop="categoryName" label="分类" width="100" />
+        <el-table-column prop="unit" label="单位" width="70" />
         <el-table-column label="进价" width="90">
           <template #default="{ row }">¥ {{ Number(row.purchasePrice).toFixed(2) }}</template>
         </el-table-column>
@@ -53,8 +54,15 @@
         <el-form-item label="商品名称" prop="productName">
           <el-input v-model.trim="form.productName" autocomplete="off" placeholder="如：矿泉水" />
         </el-form-item>
-        <el-form-item label="分类" prop="category">
-          <el-input v-model.trim="form.category" autocomplete="off" placeholder="如：饮料" />
+        <el-form-item label="分类" prop="categoryId">
+          <el-select v-model="form.categoryId" filterable placeholder="请选择分类" style="width:100%">
+            <el-option v-for="cat in categories" :key="cat.id" :label="cat.categoryName" :value="cat.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="单位" prop="unit">
+          <el-select v-model="form.unit" filterable allow-create placeholder="请选择或输入单位" style="width:100%">
+            <el-option v-for="u in unitOptions" :key="u" :label="u" :value="u" />
+          </el-select>
         </el-form-item>
         <el-form-item label="进价" prop="purchasePrice">
           <el-input-number v-model="form.purchasePrice" :min="0" :precision="2" :step="0.1" style="width:100%" />
@@ -76,19 +84,23 @@ import { Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { nextTick, onMounted, reactive, ref } from 'vue'
 import { createProduct, getProducts, updateProductStatus } from '../../api/product'
+import { getEnabledCategories } from '../../api/category'
 
 const products = ref([])
+const categories = ref([])
 const loading = ref(false)
 const statusUpdatingId = ref(null)
 const dialogVisible = ref(false)
 const submitting = ref(false)
 const formRef = ref(null)
-const form = reactive({ productCode: '', productName: '', category: '', purchasePrice: null, salePrice: null })
+const unitOptions = ['件', '箱', 'kg', 'g', 'L', 'mL', '瓶', '袋']
+const form = reactive({ productCode: '', productName: '', categoryId: null, unit: '件', purchasePrice: null, salePrice: null })
 
 const rules = {
   productCode: [{ required: true, message: '请输入商品编号', trigger: 'blur' }],
   productName: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
-  category: [{ required: true, message: '请输入分类', trigger: 'blur' }],
+  categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
+  unit: [{ required: true, message: '请选择或输入单位', trigger: 'change' }],
   purchasePrice: [{ required: true, message: '请输入进价', trigger: 'change', type: 'number' }],
   salePrice: [{ required: true, message: '请输入售价', trigger: 'change', type: 'number' }],
 }
@@ -108,10 +120,24 @@ async function loadProducts() {
   }
 }
 
+async function loadCategories() {
+  try {
+    const result = await getEnabledCategories()
+    categories.value = Array.isArray(result) ? result : []
+  } catch {
+    categories.value = []
+  }
+}
+
 function openDialog() { dialogVisible.value = true }
 
-function handleDialogOpen() {
-  Object.assign(form, { productCode: '', productName: '', category: '', purchasePrice: null, salePrice: null })
+async function handleDialogOpen() {
+  Object.assign(form, {
+    productCode: '', productName: '',
+    categoryId: null, unit: '件',
+    purchasePrice: null, salePrice: null
+  })
+  await loadCategories()  // 在 Dialog 打开时刷新分类
   nextTick(() => formRef.value?.clearValidate())
 }
 
@@ -120,7 +146,14 @@ async function handleSubmit() {
   if (!valid) return
   submitting.value = true
   try {
-    await createProduct({ productCode: form.productCode, productName: form.productName, category: form.category, purchasePrice: form.purchasePrice, salePrice: form.salePrice })
+    await createProduct({
+      productCode: form.productCode,
+      productName: form.productName,
+      categoryId: form.categoryId,
+      unit: form.unit,
+      purchasePrice: form.purchasePrice,
+      salePrice: form.salePrice,
+    })
     ElMessage.success('新增商品成功')
     dialogVisible.value = false
     await loadProducts()

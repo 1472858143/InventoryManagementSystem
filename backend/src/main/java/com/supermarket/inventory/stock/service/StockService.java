@@ -19,4 +19,6 @@ public interface StockService {
     void decreaseStock(Long productId, Integer quantity);
 
     void adjustStock(Long productId, Integer actualQuantity);
+
+    void restockStock(Long productId, Integer quantity, String operator);
 }

@@ -5,16 +5,16 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Setter
 @Getter
+@Setter
 public class StockView {
-
     private Long productId;
     private String productCode;
     private String productName;
-    private Integer quantity;
+    private String unit;
+    private Integer warehouseQuantity;
+    private Integer shelfQuantity;
     private Integer minStock;
     private Integer maxStock;
     private LocalDateTime updateTime;
-
 }

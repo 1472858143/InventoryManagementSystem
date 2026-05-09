@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2>入库管理</h2>
-        <p>记录商品入库操作，自动增加对应商品库存</p>
+        <p>入库操作将增加仓库库存，不直接影响上架库存</p>
       </div>
       <div class="page-actions">
         <el-button :icon="Refresh" :loading="loading" @click="loadInbounds">刷新</el-button>
@@ -104,7 +104,7 @@ async function handleSubmit() {
   submitting.value = true
   try {
     await createInbound({ productId: form.productId, quantity: form.quantity, operator: form.operator })
-    ElMessage.success('入库成功')
+    ElMessage.success('入库成功，已增加仓库库存')
     dialogVisible.value = false
     await loadInbounds()
   } catch (e) {

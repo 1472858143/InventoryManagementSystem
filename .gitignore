@@ -1,1 +1,118 @@
-docs/
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime / temp
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.pid
+*.seed
+*.local
+
+# Java / Maven / Spring Boot
+target/
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+backend/HELP.md
+
+# Maven wrapper runtime
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot local config
+application-local.yml
+application-local.yaml
+application-*.local.yml
+application-*.local.yaml
+
+# Node / Vue / Vite
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+.vite/
+**/.vite/
+.cache/
+**/.cache/
+.npm/
+.yarn/
+.pnpm-store/
+/package-lock.json
+
+# Env files
+.env
+.env.*
+!.env.example
+!.env.template
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Test / coverage outputs
+coverage/
+**/coverage/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+junit.xml
+surefire-reports/
+failsafe-reports/
+
+# Agent caches / scratch
+.codex/
+.claude/
+.cursor/
+.superpowers/
+docs/superpowers/
+.agent/
+.agent-cache/
+.agent-tmp/
+tmp/
+temp/
+
+# Keep formal project artifacts tracked
+!Document/
+!Document/**
+!sql/
+!sql/**
+!AGENTS.md
+!README.md

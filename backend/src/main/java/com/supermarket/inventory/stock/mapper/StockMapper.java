@@ -22,5 +22,9 @@ public interface StockMapper {
         @Param("maxStock") Integer maxStock
     );
 
-    int updateQuantityByProductId(@Param("productId") Long productId, @Param("quantity") Integer quantity);
+    int updateQuantitiesByProductId(
+        @Param("productId") Long productId,
+        @Param("warehouseQuantity") Integer warehouseQuantity,
+        @Param("shelfQuantity") Integer shelfQuantity
+    );
 }

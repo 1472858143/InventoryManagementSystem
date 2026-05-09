@@ -1,10 +1,13 @@
 package com.supermarket.inventory.product.service.impl;
 
+import com.supermarket.inventory.category.entity.Category;
+import com.supermarket.inventory.category.mapper.CategoryMapper;
 import com.supermarket.inventory.common.exception.BusinessException;
 import com.supermarket.inventory.product.dto.ProductCreateRequest;
 import com.supermarket.inventory.product.dto.ProductStatusUpdateRequest;
 import com.supermarket.inventory.product.entity.Product;
 import com.supermarket.inventory.product.mapper.ProductMapper;
+import com.supermarket.inventory.product.model.ProductView;
 import com.supermarket.inventory.product.service.ProductService;
 import com.supermarket.inventory.product.vo.ProductDetailResponse;
 import com.supermarket.inventory.product.vo.ProductListItemResponse;
@@ -19,46 +22,73 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private static final int DEFAULT_PRODUCT_STATUS = 1;
+    private static final String DEFAULT_UNIT = "件";
 
     private final ProductMapper productMapper;
+    private final CategoryMapper categoryMapper;
 
-    public ProductServiceImpl(ProductMapper productMapper) {
+    public ProductServiceImpl(ProductMapper productMapper, CategoryMapper categoryMapper) {
         this.productMapper = productMapper;
+        this.categoryMapper = categoryMapper;
     }
 
     @Override
     public ProductDetailResponse createProduct(ProductCreateRequest request) {
+        validateCreateRequest(request);
+        validatePriceRules(request.purchasePrice(), request.salePrice());
+
         Product existingProduct = productMapper.findByProductCode(request.productCode());
         if (existingProduct != null) {
             throw new BusinessException(400, "商品编码已存在");
         }
 
-        validateCreateRequest(request);
-        validatePriceRules(request.purchasePrice(), request.salePrice());
+        // validate category exists and is enabled
+        if (request.categoryId() == null) {
+            throw new BusinessException(400, "商品分类不能为空");
+        }
+        Category category = categoryMapper.findById(request.categoryId());
+        if (category == null || category.getStatus() == null || category.getStatus() != 1) {
+            throw new BusinessException(400, "分类不存在或已禁用");
+        }
 
         Product product = new Product();
         product.setProductCode(request.productCode());
         product.setProductName(request.productName());
-        product.setCategory(request.category());
+        product.setCategoryId(request.categoryId());
+        product.setUnit(request.unit() != null && !request.unit().isBlank() ? request.unit() : DEFAULT_UNIT);
         product.setPurchasePrice(request.purchasePrice());
         product.setSalePrice(request.salePrice());
         product.setStatus(DEFAULT_PRODUCT_STATUS);
 
         productMapper.insert(product);
 
-        Product createdProduct = productMapper.findById(product.getId());
-        return toProductDetailResponse(createdProduct != null ? createdProduct : product);
+        ProductView createdProduct = productMapper.findByIdWithCategory(product.getId());
+        if (createdProduct != null) {
+            return toProductDetailResponse(createdProduct);
+        }
+        // fallback: build from product + category
+        return new ProductDetailResponse(
+            product.getId(),
+            product.getProductCode(),
+            product.getProductName(),
+            product.getCategoryId(),
+            category.getCategoryName(),
+            product.getUnit(),
+            product.getPurchasePrice(),
+            product.getSalePrice(),
+            product.getStatus(),
+            LocalDateTime.now()
+        );
     }
 
     @Override
     public List<ProductListItemResponse> listProducts() {
-        List<Product> products = productMapper.findAll();
+        List<ProductView> products = productMapper.findAllWithCategory();
         if (products.isEmpty()) {
             return List.of();
         }
-
         List<ProductListItemResponse> responses = new ArrayList<>(products.size());
-        for (Product product : products) {
+        for (ProductView product : products) {
             responses.add(toProductListItemResponse(product));
         }
         return responses;
@@ -79,11 +109,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void validateCreateRequest(ProductCreateRequest request) {
+        if (isBlank(request.productCode())) {
+            throw new BusinessException(400, "商品编码不能为空");
+        }
         if (isBlank(request.productName())) {
             throw new BusinessException(400, "商品名称不能为空");
-        }
-        if (isBlank(request.category())) {
-            throw new BusinessException(400, "商品分类不能为空");
         }
         if (request.purchasePrice() == null) {
             throw new BusinessException(400, "进价不能为空");
@@ -105,37 +135,34 @@ public class ProductServiceImpl implements ProductService {
         }
     }
 
-    private ProductDetailResponse toProductDetailResponse(Product product) {
+    private ProductDetailResponse toProductDetailResponse(ProductView product) {
         return new ProductDetailResponse(
             product.getId(),
             product.getProductCode(),
             product.getProductName(),
-            product.getCategory(),
+            product.getCategoryId(),
+            product.getCategoryName(),
+            product.getUnit(),
             product.getPurchasePrice(),
             product.getSalePrice(),
             product.getStatus(),
-            resolveCreateTime(product)
+            product.getCreateTime() != null ? product.getCreateTime() : LocalDateTime.now()
         );
     }
 
-    private ProductListItemResponse toProductListItemResponse(Product product) {
+    private ProductListItemResponse toProductListItemResponse(ProductView product) {
         return new ProductListItemResponse(
             product.getId(),
             product.getProductCode(),
             product.getProductName(),
-            product.getCategory(),
+            product.getCategoryId(),
+            product.getCategoryName(),
+            product.getUnit(),
             product.getPurchasePrice(),
             product.getSalePrice(),
             product.getStatus(),
             product.getCreateTime()
         );
-    }
-
-    private LocalDateTime resolveCreateTime(Product product) {
-        if (product.getCreateTime() != null) {
-            return product.getCreateTime();
-        }
-        return LocalDateTime.now();
     }
 
     private boolean isBlank(String value) {

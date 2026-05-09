@@ -1,6 +1,7 @@
 package com.supermarket.inventory.stock.controller;
 
 import com.supermarket.inventory.common.response.ApiResponse;
+import com.supermarket.inventory.stock.dto.RestockRequest;
 import com.supermarket.inventory.stock.dto.StockLimitUpdateRequest;
 import com.supermarket.inventory.stock.service.StockService;
 import com.supermarket.inventory.stock.vo.StockDetailResponse;
@@ -8,6 +9,7 @@ import com.supermarket.inventory.stock.vo.StockListItemResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,6 +43,12 @@ public class StockController {
         @Valid @RequestBody StockLimitUpdateRequest request
     ) {
         stockService.updateStockLimit(productId, request);
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/{productId}/restock")
+    public ApiResponse<Void> restock(@PathVariable Long productId, @RequestBody @Valid RestockRequest request) {
+        stockService.restockStock(productId, request.quantity(), request.operator());
         return ApiResponse.success();
     }
 }

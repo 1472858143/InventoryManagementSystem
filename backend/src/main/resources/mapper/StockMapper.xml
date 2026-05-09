@@ -9,7 +9,9 @@
             s.product_id AS productId,
             p.product_code AS productCode,
             p.product_name AS productName,
-            s.quantity AS quantity,
+            p.unit AS unit,
+            s.warehouse_quantity AS warehouseQuantity,
+            s.shelf_quantity AS shelfQuantity,
             s.min_stock AS minStock,
             s.max_stock AS maxStock,
             s.update_time AS updateTime
@@ -23,7 +25,9 @@
             s.product_id AS productId,
             p.product_code AS productCode,
             p.product_name AS productName,
-            s.quantity AS quantity,
+            p.unit AS unit,
+            s.warehouse_quantity AS warehouseQuantity,
+            s.shelf_quantity AS shelfQuantity,
             s.min_stock AS minStock,
             s.max_stock AS maxStock,
             s.update_time AS updateTime
@@ -34,9 +38,10 @@
 
     <select id="findEntityByProductId" parameterType="long" resultType="com.supermarket.inventory.stock.entity.Stock">
         SELECT
-            id AS id,
+            id,
             product_id AS productId,
-            quantity AS quantity,
+            warehouse_quantity AS warehouseQuantity,
+            shelf_quantity AS shelfQuantity,
             min_stock AS minStock,
             max_stock AS maxStock,
             update_time AS updateTime
@@ -51,9 +56,10 @@
         WHERE product_id = #{productId}
     </update>
 
-    <update id="updateQuantityByProductId">
+    <update id="updateQuantitiesByProductId">
         UPDATE stock
-        SET quantity = #{quantity}
+        SET warehouse_quantity = #{warehouseQuantity},
+            shelf_quantity = #{shelfQuantity}
         WHERE product_id = #{productId}
     </update>
 

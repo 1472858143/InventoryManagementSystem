@@ -7,10 +7,11 @@ public record ProductDetailResponse(
     Long id,
     String productCode,
     String productName,
-    String category,
+    Long categoryId,
+    String categoryName,
+    String unit,
     BigDecimal purchasePrice,
     BigDecimal salePrice,
     Integer status,
     LocalDateTime createTime
-) {
-}
+) {}

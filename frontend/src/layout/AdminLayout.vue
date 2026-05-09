@@ -16,6 +16,7 @@
         <el-menu-item index="/"><el-icon><House /></el-icon><span>首页</span></el-menu-item>
         <el-menu-item index="/users"><el-icon><User /></el-icon><span>用户管理</span></el-menu-item>
         <el-menu-item index="/products"><el-icon><Goods /></el-icon><span>商品管理</span></el-menu-item>
+        <el-menu-item index="/categories"><el-icon><Menu /></el-icon><span>商品分类</span></el-menu-item>
         <el-menu-item index="/stocks"><el-icon><Box /></el-icon><span>库存管理</span></el-menu-item>
         <el-menu-item index="/inbounds"><el-icon><Download /></el-icon><span>入库管理</span></el-menu-item>
         <el-menu-item index="/outbounds"><el-icon><Upload /></el-icon><span>出库管理</span></el-menu-item>

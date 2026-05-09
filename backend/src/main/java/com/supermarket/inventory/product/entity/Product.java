@@ -6,17 +6,16 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Setter
 @Getter
+@Setter
 public class Product {
-
     private Long id;
     private String productCode;
     private String productName;
-    private String category;
+    private Long categoryId;
+    private String unit;
     private BigDecimal purchasePrice;
     private BigDecimal salePrice;
     private Integer status;
     private LocalDateTime createTime;
-
 }

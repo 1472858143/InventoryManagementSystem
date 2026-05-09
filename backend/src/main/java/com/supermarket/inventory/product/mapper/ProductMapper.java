@@ -1,6 +1,7 @@
 package com.supermarket.inventory.product.mapper;
 
 import com.supermarket.inventory.product.entity.Product;
+import com.supermarket.inventory.product.model.ProductView;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
@@ -18,7 +19,8 @@ public interface ProductMapper {
             id AS id,
             product_code AS productCode,
             product_name AS productName,
-            category AS category,
+            category_id AS categoryId,
+            unit AS unit,
             purchase_price AS purchasePrice,
             sale_price AS salePrice,
             status AS status,
@@ -32,14 +34,16 @@ public interface ProductMapper {
         INSERT INTO product (
             product_code,
             product_name,
-            category,
+            category_id,
+            unit,
             purchase_price,
             sale_price,
             status
         ) VALUES (
             #{productCode},
             #{productName},
-            #{category},
+            #{categoryId},
+            #{unit},
             #{purchasePrice},
             #{salePrice},
             #{status}
@@ -53,7 +57,8 @@ public interface ProductMapper {
             id AS id,
             product_code AS productCode,
             product_name AS productName,
-            category AS category,
+            category_id AS categoryId,
+            unit AS unit,
             purchase_price AS purchasePrice,
             sale_price AS salePrice,
             status AS status,
@@ -68,7 +73,8 @@ public interface ProductMapper {
             id AS id,
             product_code AS productCode,
             product_name AS productName,
-            category AS category,
+            category_id AS categoryId,
+            unit AS unit,
             purchase_price AS purchasePrice,
             sale_price AS salePrice,
             status AS status,
@@ -77,6 +83,26 @@ public interface ProductMapper {
         WHERE id = #{productId}
         """)
     Product findById(@Param("productId") Long productId);
+
+    @Select("""
+        SELECT p.id AS id, p.product_code AS productCode, p.product_name AS productName,
+               p.category_id AS categoryId, c.category_name AS categoryName,
+               p.unit AS unit, p.purchase_price AS purchasePrice,
+               p.sale_price AS salePrice, p.status AS status, p.create_time AS createTime
+        FROM product p INNER JOIN category c ON c.id = p.category_id
+        ORDER BY p.id ASC
+        """)
+    List<ProductView> findAllWithCategory();
+
+    @Select("""
+        SELECT p.id AS id, p.product_code AS productCode, p.product_name AS productName,
+               p.category_id AS categoryId, c.category_name AS categoryName,
+               p.unit AS unit, p.purchase_price AS purchasePrice,
+               p.sale_price AS salePrice, p.status AS status, p.create_time AS createTime
+        FROM product p INNER JOIN category c ON c.id = p.category_id
+        WHERE p.id = #{productId}
+        """)
+    ProductView findByIdWithCategory(@Param("productId") Long productId);
 
     @Update("""
         UPDATE product
