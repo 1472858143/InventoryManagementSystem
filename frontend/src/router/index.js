@@ -9,24 +9,17 @@ import OutboundView from '../views/outbound/OutboundView.vue'
 import ProductView from '../views/product/ProductView.vue'
 import ReportView from '../views/report/ReportView.vue'
 import StockView from '../views/stock/StockView.vue'
+import StockWorkspaceView from '../views/stock/StockWorkspaceView.vue'
+import ShelfRestockView from '../views/stock/ShelfRestockView.vue'
 import StockcheckView from '../views/stockcheck/StockcheckView.vue'
 import SystemView from '../views/system/SystemView.vue'
 import UserView from '../views/user/UserView.vue'
 
 async function ensureAuthenticated() {
-  if (authState.isAuthenticated) {
-    return true
-  }
-
-  if (!authState.token) {
-    clearAuth()
-    return false
-  }
-
+  if (authState.isAuthenticated) return true
+  if (!authState.token) { clearAuth(); return false }
   try {
-    const currentUser = await getCurrentUser({
-      redirectOnUnauthorized: false,
-    })
+    const currentUser = await getCurrentUser({ redirectOnUnauthorized: false })
     setCurrentUser(currentUser)
     return true
   } catch {
@@ -42,73 +35,28 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
-      meta: {
-        public: true,
-      },
+      meta: { public: true },
     },
     {
       path: '/',
       component: AdminLayout,
-      meta: {
-        requiresAuth: true,
-      },
+      meta: { requiresAuth: true },
       children: [
-        {
-          path: '',
-          name: 'home',
-          component: HomeView,
-        },
-        {
-          path: 'users',
-          name: 'users',
-          component: UserView,
-        },
-        {
-          path: 'products',
-          name: 'products',
-          component: ProductView,
-        },
-        {
-          path: 'stocks',
-          name: 'stocks',
-          component: StockView,
-        },
-        {
-          path: 'inbounds',
-          name: 'inbounds',
-          component: InboundView,
-        },
-        {
-          path: 'outbounds',
-          name: 'outbounds',
-          component: OutboundView,
-        },
-        {
-          path: 'stockchecks',
-          name: 'stockchecks',
-          component: StockcheckView,
-        },
-        {
-          path: 'reports',
-          name: 'reports',
-          component: ReportView,
-        },
-        {
-          path: 'system',
-          name: 'system',
-          component: SystemView,
-        },
-        {
-          path: 'categories',
-          name: 'categories',
-          component: () => import('../views/category/CategoryView.vue'),
-        },
+        { path: '', name: 'home', component: HomeView },
+        { path: 'products', name: 'products', component: ProductView },
+        { path: 'categories', name: 'categories', component: () => import('../views/category/CategoryView.vue') },
+        { path: 'stock-workspace', name: 'stock-workspace', component: StockWorkspaceView },
+        { path: 'stocks', name: 'stocks', component: StockView },
+        { path: 'inbounds', name: 'inbounds', component: InboundView },
+        { path: 'shelf-restock', name: 'shelf-restock', component: ShelfRestockView },
+        { path: 'outbounds', name: 'outbounds', component: OutboundView },
+        { path: 'stockchecks', name: 'stockchecks', component: StockcheckView },
+        { path: 'reports', name: 'reports', component: ReportView },
+        { path: 'users', name: 'users', component: UserView },
+        { path: 'system', name: 'system', component: SystemView },
       ],
     },
-    {
-      path: '/:pathMatch(.*)*',
-      redirect: '/',
-    },
+    { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })
 
@@ -116,25 +64,14 @@ router.beforeEach(async (to) => {
   if (to.meta.public) {
     if (to.path === '/login' && authState.token) {
       const authenticated = await ensureAuthenticated()
-      if (authenticated) {
-        return { path: '/' }
-      }
+      if (authenticated) return { path: '/' }
     }
     return true
   }
-
   if (to.meta.requiresAuth) {
     const authenticated = await ensureAuthenticated()
-    if (!authenticated) {
-      return {
-        path: '/login',
-        query: {
-          redirect: to.fullPath,
-        },
-      }
-    }
+    if (!authenticated) return { path: '/login', query: { redirect: to.fullPath } }
   }
-
   return true
 })
 
