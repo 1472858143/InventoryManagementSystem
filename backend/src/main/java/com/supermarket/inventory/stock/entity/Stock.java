@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 public class Stock {
     private Long id;
     private Long productId;
-    private Integer warehouseQuantity;
-    private Integer shelfQuantity;
+    private Integer quantity;
+    private String shelfStatus;
     private Integer minStock;
     private Integer maxStock;
     private LocalDateTime updateTime;

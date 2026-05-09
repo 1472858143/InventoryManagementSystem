@@ -20,5 +20,7 @@ public interface StockService {
 
     void adjustStock(Long productId, Integer actualQuantity);
 
-    void restockStock(Long productId, Integer quantity, String operator);
+    void updateShelfStatus(Long productId, String shelfStatus);
+
+    void batchUpdateShelfStatus(List<Long> productIds, String shelfStatus);
 }

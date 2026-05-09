@@ -3,6 +3,6 @@ package com.supermarket.inventory.stock.enums;
 public enum StockChangeTypeEnum {
     INBOUND,
     OUTBOUND,
-    RESTOCK,
-    CHECK
+    CHECK,
+    SHELF_STATUS
 }

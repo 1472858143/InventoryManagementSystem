@@ -22,9 +22,18 @@ public interface StockMapper {
         @Param("maxStock") Integer maxStock
     );
 
-    int updateQuantitiesByProductId(
+    int updateQuantityByProductId(
         @Param("productId") Long productId,
-        @Param("warehouseQuantity") Integer warehouseQuantity,
-        @Param("shelfQuantity") Integer shelfQuantity
+        @Param("quantity") Integer quantity
+    );
+
+    int updateShelfStatusByProductId(
+        @Param("productId") Long productId,
+        @Param("shelfStatus") String shelfStatus
+    );
+
+    int batchUpdateShelfStatus(
+        @Param("productIds") List<Long> productIds,
+        @Param("shelfStatus") String shelfStatus
     );
 }

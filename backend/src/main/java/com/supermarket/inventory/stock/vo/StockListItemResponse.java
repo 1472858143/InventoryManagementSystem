@@ -7,8 +7,8 @@ public record StockListItemResponse(
     String productCode,
     String productName,
     String unit,
-    Integer warehouseQuantity,
-    Integer shelfQuantity,
+    Integer quantity,
+    String shelfStatus,
     Integer minStock,
     Integer maxStock,
     LocalDateTime updateTime

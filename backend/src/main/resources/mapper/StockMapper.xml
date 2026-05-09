@@ -6,15 +6,16 @@
 
     <select id="findAll" resultType="com.supermarket.inventory.stock.model.StockView">
         SELECT
-            s.product_id AS productId,
-            p.product_code AS productCode,
-            p.product_name AS productName,
-            p.unit AS unit,
-            s.warehouse_quantity AS warehouseQuantity,
-            s.shelf_quantity AS shelfQuantity,
-            s.min_stock AS minStock,
-            s.max_stock AS maxStock,
-            s.update_time AS updateTime
+            s.id               AS id,
+            s.product_id       AS productId,
+            p.product_code     AS productCode,
+            p.product_name     AS productName,
+            p.unit             AS unit,
+            s.quantity         AS quantity,
+            s.shelf_status     AS shelfStatus,
+            s.min_stock        AS minStock,
+            s.max_stock        AS maxStock,
+            s.update_time      AS updateTime
         FROM stock s
         INNER JOIN product p ON p.id = s.product_id
         ORDER BY s.id ASC
@@ -22,15 +23,16 @@
 
     <select id="findByProductId" parameterType="long" resultType="com.supermarket.inventory.stock.model.StockView">
         SELECT
-            s.product_id AS productId,
-            p.product_code AS productCode,
-            p.product_name AS productName,
-            p.unit AS unit,
-            s.warehouse_quantity AS warehouseQuantity,
-            s.shelf_quantity AS shelfQuantity,
-            s.min_stock AS minStock,
-            s.max_stock AS maxStock,
-            s.update_time AS updateTime
+            s.id               AS id,
+            s.product_id       AS productId,
+            p.product_code     AS productCode,
+            p.product_name     AS productName,
+            p.unit             AS unit,
+            s.quantity         AS quantity,
+            s.shelf_status     AS shelfStatus,
+            s.min_stock        AS minStock,
+            s.max_stock        AS maxStock,
+            s.update_time      AS updateTime
         FROM stock s
         INNER JOIN product p ON p.id = s.product_id
         WHERE s.product_id = #{productId}
@@ -39,28 +41,46 @@
     <select id="findEntityByProductId" parameterType="long" resultType="com.supermarket.inventory.stock.entity.Stock">
         SELECT
             id,
-            product_id AS productId,
-            warehouse_quantity AS warehouseQuantity,
-            shelf_quantity AS shelfQuantity,
-            min_stock AS minStock,
-            max_stock AS maxStock,
-            update_time AS updateTime
+            product_id     AS productId,
+            quantity,
+            shelf_status   AS shelfStatus,
+            min_stock      AS minStock,
+            max_stock      AS maxStock,
+            update_time    AS updateTime
         FROM stock
         WHERE product_id = #{productId}
     </select>
 
     <update id="updateLimitByProductId">
         UPDATE stock
-        SET min_stock = #{minStock},
-            max_stock = #{maxStock}
+        SET min_stock   = #{minStock},
+            max_stock   = #{maxStock},
+            update_time = NOW()
         WHERE product_id = #{productId}
     </update>
 
-    <update id="updateQuantitiesByProductId">
+    <update id="updateQuantityByProductId">
         UPDATE stock
-        SET warehouse_quantity = #{warehouseQuantity},
-            shelf_quantity = #{shelfQuantity}
+        SET quantity    = #{quantity},
+            update_time = NOW()
         WHERE product_id = #{productId}
+    </update>
+
+    <update id="updateShelfStatusByProductId">
+        UPDATE stock
+        SET shelf_status = #{shelfStatus},
+            update_time  = NOW()
+        WHERE product_id = #{productId}
+    </update>
+
+    <update id="batchUpdateShelfStatus">
+        UPDATE stock
+        SET shelf_status = #{shelfStatus},
+            update_time  = NOW()
+        WHERE product_id IN
+        <foreach collection="productIds" item="pid" open="(" separator="," close=")">
+            #{pid}
+        </foreach>
     </update>
 
 </mapper>

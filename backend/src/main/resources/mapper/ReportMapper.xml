@@ -6,15 +6,14 @@
 
     <select id="findStockOverview" resultType="com.supermarket.inventory.report.vo.StockOverviewItem">
         SELECT
-            p.product_name AS productName,
-            s.warehouse_quantity AS warehouseQuantity,
-            s.shelf_quantity AS shelfQuantity,
-            (s.warehouse_quantity + s.shelf_quantity) AS totalQuantity,
-            s.min_stock AS minStock,
-            s.max_stock AS maxStock
+            p.product_name  AS productName,
+            s.quantity      AS quantity,
+            s.shelf_status  AS shelfStatus,
+            s.min_stock     AS minStock,
+            s.max_stock     AS maxStock
         FROM stock s
         INNER JOIN product p ON p.id = s.product_id
-        ORDER BY totalQuantity DESC
+        ORDER BY s.quantity DESC
     </select>
 
     <select id="findInboundTrend" resultType="com.supermarket.inventory.report.vo.TrendItem">

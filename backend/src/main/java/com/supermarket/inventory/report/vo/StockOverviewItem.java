@@ -7,9 +7,8 @@ import lombok.Setter;
 @Setter
 public class StockOverviewItem {
     private String productName;
-    private Integer warehouseQuantity;
-    private Integer shelfQuantity;
-    private Integer totalQuantity;
+    private Integer quantity;
+    private String shelfStatus;
     private Integer minStock;
     private Integer maxStock;
 }

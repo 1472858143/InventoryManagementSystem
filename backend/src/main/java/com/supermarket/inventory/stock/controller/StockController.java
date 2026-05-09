@@ -1,13 +1,15 @@
 package com.supermarket.inventory.stock.controller;
 
 import com.supermarket.inventory.common.response.ApiResponse;
-import com.supermarket.inventory.stock.dto.RestockRequest;
+import com.supermarket.inventory.stock.dto.BatchShelfStatusUpdateRequest;
+import com.supermarket.inventory.stock.dto.ShelfStatusUpdateRequest;
 import com.supermarket.inventory.stock.dto.StockLimitUpdateRequest;
 import com.supermarket.inventory.stock.service.StockService;
 import com.supermarket.inventory.stock.vo.StockDetailResponse;
 import com.supermarket.inventory.stock.vo.StockListItemResponse;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -46,9 +48,20 @@ public class StockController {
         return ApiResponse.success();
     }
 
-    @PostMapping("/{productId}/restock")
-    public ApiResponse<Void> restock(@PathVariable Long productId, @RequestBody @Valid RestockRequest request) {
-        stockService.restockStock(productId, request.quantity(), request.operator());
+    @PatchMapping("/{productId}/shelf-status")
+    public ApiResponse<Void> updateShelfStatus(
+        @PathVariable Long productId,
+        @Valid @RequestBody ShelfStatusUpdateRequest request
+    ) {
+        stockService.updateShelfStatus(productId, request.shelfStatus());
+        return ApiResponse.success();
+    }
+
+    @PostMapping("/shelf-status/batch")
+    public ApiResponse<Void> batchUpdateShelfStatus(
+        @Valid @RequestBody BatchShelfStatusUpdateRequest request
+    ) {
+        stockService.batchUpdateShelfStatus(request.productIds(), request.shelfStatus());
         return ApiResponse.success();
     }
 }
