@@ -23,7 +23,7 @@
             COUNT(*) AS count
         FROM inbound_order
         WHERE create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-        GROUP BY DATE(create_time)
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
         ORDER BY date ASC
     </select>
 
@@ -33,7 +33,7 @@
             COUNT(*) AS count
         FROM outbound_order
         WHERE create_time >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-        GROUP BY DATE(create_time)
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
         ORDER BY date ASC
     </select>
 
