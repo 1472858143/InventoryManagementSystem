@@ -21,6 +21,11 @@ import java.util.List;
 @Service
 public class StockServiceImpl implements StockService {
 
+    private static final int INITIAL_QUANTITY = 0;
+    private static final int DEFAULT_MIN_STOCK = 0;
+    private static final int DEFAULT_MAX_STOCK = 999999;
+    private static final String DEFAULT_SHELF_STATUS = "\u672A\u4E0A\u67B6";
+
     private final StockMapper stockMapper;
     private final StockLogMapper stockLogMapper;
     private final StockDomainService stockDomainService;
@@ -50,6 +55,23 @@ public class StockServiceImpl implements StockService {
         StockView stock = stockMapper.findByProductId(productId);
         if (stock == null) throw new BusinessException(404, "库存记录不存在");
         return toDetail(stock);
+    }
+
+    @Override
+    @Transactional
+    public void initializeStockForProduct(Long productId) {
+        requireProductId(productId);
+        if (stockMapper.findEntityByProductId(productId) != null) {
+            return;
+        }
+
+        Stock stock = new Stock();
+        stock.setProductId(productId);
+        stock.setQuantity(INITIAL_QUANTITY);
+        stock.setShelfStatus(DEFAULT_SHELF_STATUS);
+        stock.setMinStock(DEFAULT_MIN_STOCK);
+        stock.setMaxStock(DEFAULT_MAX_STOCK);
+        stockMapper.insert(stock);
     }
 
     @Override

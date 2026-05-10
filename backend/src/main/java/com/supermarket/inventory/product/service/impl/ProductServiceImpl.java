@@ -11,7 +11,9 @@ import com.supermarket.inventory.product.model.ProductView;
 import com.supermarket.inventory.product.service.ProductService;
 import com.supermarket.inventory.product.vo.ProductDetailResponse;
 import com.supermarket.inventory.product.vo.ProductListItemResponse;
+import com.supermarket.inventory.stock.service.StockService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,13 +28,20 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper productMapper;
     private final CategoryMapper categoryMapper;
+    private final StockService stockService;
 
-    public ProductServiceImpl(ProductMapper productMapper, CategoryMapper categoryMapper) {
+    public ProductServiceImpl(
+        ProductMapper productMapper,
+        CategoryMapper categoryMapper,
+        StockService stockService
+    ) {
         this.productMapper = productMapper;
         this.categoryMapper = categoryMapper;
+        this.stockService = stockService;
     }
 
     @Override
+    @Transactional
     public ProductDetailResponse createProduct(ProductCreateRequest request) {
         validateCreateRequest(request);
         validatePriceRules(request.purchasePrice(), request.salePrice());
@@ -61,6 +70,7 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(DEFAULT_PRODUCT_STATUS);
 
         productMapper.insert(product);
+        stockService.initializeStockForProduct(product.getId());
 
         ProductView createdProduct = productMapper.findByIdWithCategory(product.getId());
         if (createdProduct != null) {

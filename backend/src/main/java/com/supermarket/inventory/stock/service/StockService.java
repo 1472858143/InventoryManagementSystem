@@ -12,6 +12,8 @@ public interface StockService {
 
     StockDetailResponse getStockByProductId(Long productId);
 
+    void initializeStockForProduct(Long productId);
+
     void updateStockLimit(Long productId, StockLimitUpdateRequest request);
 
     void increaseStock(Long productId, Integer quantity);

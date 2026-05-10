@@ -51,6 +51,23 @@
         WHERE product_id = #{productId}
     </select>
 
+    <insert id="insert" parameterType="com.supermarket.inventory.stock.entity.Stock" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO stock (
+            product_id,
+            quantity,
+            shelf_status,
+            min_stock,
+            max_stock
+        )
+        VALUES (
+            #{productId},
+            #{quantity},
+            #{shelfStatus},
+            #{minStock},
+            #{maxStock}
+        )
+    </insert>
+
     <update id="updateLimitByProductId">
         UPDATE stock
         SET min_stock   = #{minStock},
