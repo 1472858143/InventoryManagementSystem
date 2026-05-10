@@ -35,4 +35,7 @@
   /* Element Plus 覆盖 */
   --el-color-primary: #6366F1;
   --el-border-radius-base: 8px;
+
+  /* 组件样式 */
+  --color-submenu-bg: rgba(248, 250, 252, 0.6);
 }

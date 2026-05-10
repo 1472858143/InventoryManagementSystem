@@ -198,7 +198,7 @@ async function handleLogout() {
 }
 
 :deep(.el-menu--inline) {
-  background-color: rgba(248, 250, 252, 0.6) !important;
+  background-color: var(--color-submenu-bg) !important;
 }
 
 .layout-body {

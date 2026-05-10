@@ -108,6 +108,7 @@ docs/superpowers/
 .agent-tmp/
 tmp/
 temp/
+CLAUDE.md
 
 # Keep formal project artifacts tracked
 !Document/
