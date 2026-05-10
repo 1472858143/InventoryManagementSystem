@@ -36,4 +36,68 @@
         ORDER BY date ASC
     </select>
 
+    <select id="findShelfStatusDistribution"
+            resultType="com.supermarket.inventory.report.vo.ShelfStatusDistributionItem">
+        SELECT shelf_status AS shelfStatus, COUNT(*) AS count
+        FROM stock
+        GROUP BY shelf_status
+        ORDER BY count DESC
+    </select>
+
+    <select id="findCategoryDistribution"
+            resultType="com.supermarket.inventory.report.vo.CategoryDistributionItem">
+        SELECT c.category_name AS categoryName,
+               SUM(s.quantity) AS totalQuantity,
+               COUNT(s.product_id) AS itemCount
+        FROM category c
+        INNER JOIN product p ON p.category_id = c.id
+        INNER JOIN stock s ON s.product_id = p.id
+        GROUP BY c.id, c.category_name
+        ORDER BY totalQuantity DESC
+    </select>
+
+    <select id="findRestockSuggestions"
+            resultType="com.supermarket.inventory.report.vo.RestockSuggestionItem">
+        SELECT p.id          AS productId,
+               p.product_code AS productCode,
+               p.product_name AS productName,
+               s.quantity,
+               s.min_stock   AS minStock,
+               s.shelf_status AS shelfStatus
+        FROM stock s
+        INNER JOIN product p ON p.id = s.product_id
+        WHERE s.quantity &lt; s.min_stock OR s.shelf_status = '缺货'
+        ORDER BY s.quantity ASC
+    </select>
+
+    <select id="findSlowMoving"
+            resultType="com.supermarket.inventory.report.vo.SlowMovingItem">
+        SELECT p.id           AS productId,
+               p.product_code AS productCode,
+               p.product_name AS productName,
+               s.quantity
+        FROM product p
+        INNER JOIN stock s ON s.product_id = p.id
+        WHERE p.id NOT IN (
+            SELECT DISTINCT product_id
+            FROM outbound_order
+            WHERE create_time &gt;= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        )
+        ORDER BY s.quantity DESC
+    </select>
+
+    <select id="findSalesHotspot"
+            resultType="com.supermarket.inventory.report.vo.SalesHotspotItem">
+        SELECT oo.product_id  AS productId,
+               p.product_code AS productCode,
+               p.product_name AS productName,
+               SUM(oo.quantity) AS totalOutbound
+        FROM outbound_order oo
+        INNER JOIN product p ON p.id = oo.product_id
+        WHERE oo.create_time &gt;= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        GROUP BY oo.product_id, p.product_code, p.product_name
+        ORDER BY totalOutbound DESC
+        LIMIT #{lim}
+    </select>
+
 </mapper>
