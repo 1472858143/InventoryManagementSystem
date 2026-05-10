@@ -9,15 +9,19 @@ export function getStock(productId) {
 }
 
 export function updateStockLimit(productId, payload) {
-  return request(`/stocks/${productId}/limit`, {
-    method: 'PUT',
-    body: payload,
+  return request(`/stocks/${productId}/limit`, { method: 'PUT', body: payload })
+}
+
+export function updateShelfStatus(productId, shelfStatus) {
+  return request(`/stocks/${productId}/shelf-status`, {
+    method: 'PATCH',
+    body: { shelfStatus },
   })
 }
 
-export function restockProduct(productId, payload) {
-  return request(`/stocks/${productId}/restock`, {
+export function batchUpdateShelfStatus(productIds, shelfStatus) {
+  return request('/stocks/shelf-status/batch', {
     method: 'POST',
-    body: payload,
+    body: { productIds, shelfStatus },
   })
 }
