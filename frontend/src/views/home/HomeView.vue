@@ -50,10 +50,10 @@ const loading = ref(true)
 const stats = reactive({ productCount: 0, warningCount: 0, inboundCount: 0, outboundCount: 0 })
 
 const statCards = computed(() => [
-  { key: 'product', label: '商品总数', value: stats.productCount, icon: Goods, color: '#1890ff' },
-  { key: 'warning', label: '库存预警', value: stats.warningCount, icon: Warning, color: '#ff4d4f' },
-  { key: 'inbound', label: '入库总笔数', value: stats.inboundCount, icon: Download, color: '#52c41a' },
-  { key: 'outbound', label: '出库总笔数', value: stats.outboundCount, icon: Upload, color: '#722ed1' },
+  { key: 'product', label: '商品总数', value: stats.productCount, icon: Goods, color: 'var(--color-primary)' },
+  { key: 'warning', label: '库存预警', value: stats.warningCount, icon: Warning, color: 'var(--color-danger)' },
+  { key: 'inbound', label: '入库总笔数', value: stats.inboundCount, icon: Download, color: 'var(--color-success)' },
+  { key: 'outbound', label: '出库总笔数', value: stats.outboundCount, icon: Upload, color: 'var(--color-warning)' },
 ])
 
 const inboundChartRef = ref(null)
@@ -117,15 +117,20 @@ onMounted(async () => {
       getOutbounds(),
     ])
     stats.productCount = Array.isArray(products) ? products.length : 0
-    stats.warningCount = (Array.isArray(stocks) ? stocks : []).filter(s => s.quantity < s.minStock).length
+    const stockArr = Array.isArray(stocks) ? stocks : []
+    stats.warningCount = stockArr.filter(s => s.shelfStatus === '缺货' || s.quantity < s.minStock).length
     stats.inboundCount = Array.isArray(inbounds) ? inbounds.length : 0
     stats.outboundCount = Array.isArray(outbounds) ? outbounds.length : 0
 
+    const rootStyle = getComputedStyle(document.documentElement)
+    const primaryColor = rootStyle.getPropertyValue('--color-primary').trim() || '#6366F1'
+    const successColor = rootStyle.getPropertyValue('--color-success').trim() || '#22C55E'
+
     inboundChart = echarts.init(inboundChartRef.value)
-    inboundChart.setOption(makeLineOption(aggregateByDay(inbounds || [], 'createTime'), '#1890ff'))
+    inboundChart.setOption(makeLineOption(aggregateByDay(inbounds || [], 'createTime'), primaryColor))
 
     outboundChart = echarts.init(outboundChartRef.value)
-    outboundChart.setOption(makeLineOption(aggregateByDay(outbounds || [], 'createTime'), '#52c41a'))
+    outboundChart.setOption(makeLineOption(aggregateByDay(outbounds || [], 'createTime'), successColor))
   } catch (e) {
     ElMessage.error(e.message || '加载数据失败')
   } finally {
@@ -160,13 +165,14 @@ onUnmounted(() => {
 }
 
 .stat-card {
-  background: #ffffff;
-  border-radius: 8px;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-card);
   margin-bottom: 16px;
   min-height: 90px;
 }
