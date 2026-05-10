@@ -24,16 +24,27 @@ CREATE TABLE role (
                       UNIQUE KEY uk_role_code (role_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE category (
+                          id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                          category_name VARCHAR(50) NOT NULL COMMENT '分类名称',
+                          status TINYINT NOT NULL DEFAULT 1 COMMENT '0-禁用 1-启用',
+                          create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          UNIQUE KEY uk_category_name (category_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表';
+
 CREATE TABLE product (
                          id BIGINT PRIMARY KEY AUTO_INCREMENT,
                          product_code VARCHAR(50) NOT NULL,
                          product_name VARCHAR(100) NOT NULL,
-                         category VARCHAR(50) NOT NULL,
+                         category_id BIGINT NOT NULL COMMENT '商品分类ID，关联 category.id',
+                         unit VARCHAR(20) NOT NULL DEFAULT '件' COMMENT '计量单位',
                          purchase_price DECIMAL(10,2) NOT NULL,
                          sale_price DECIMAL(10,2) NOT NULL,
                          status TINYINT NOT NULL DEFAULT 1 COMMENT '0-下架 1-上架',
                          create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          UNIQUE KEY uk_product_code (product_code),
+                         CONSTRAINT fk_product_category
+                             FOREIGN KEY (category_id) REFERENCES category(id),
                          CHECK (purchase_price >= 0),
                          CHECK (sale_price >= 0),
                          CHECK (sale_price >= purchase_price)
