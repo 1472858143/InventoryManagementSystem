@@ -12,6 +12,7 @@ public record ProductListItemResponse(
     String unit,
     BigDecimal purchasePrice,
     BigDecimal salePrice,
+    Integer salesCount,
     Integer status,
     LocalDateTime createTime
 ) {}

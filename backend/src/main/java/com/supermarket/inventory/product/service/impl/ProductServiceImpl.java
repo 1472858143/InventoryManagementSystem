@@ -12,19 +12,23 @@ import com.supermarket.inventory.product.service.ProductService;
 import com.supermarket.inventory.product.vo.ProductDetailResponse;
 import com.supermarket.inventory.product.vo.ProductListItemResponse;
 import com.supermarket.inventory.stock.service.StockService;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
     private static final int DEFAULT_PRODUCT_STATUS = 1;
     private static final String DEFAULT_UNIT = "件";
+    private static final DateTimeFormatter PRODUCT_CODE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final ProductMapper productMapper;
     private final CategoryMapper categoryMapper;
@@ -46,9 +50,12 @@ public class ProductServiceImpl implements ProductService {
         validateCreateRequest(request);
         validatePriceRules(request.purchasePrice(), request.salePrice());
 
-        Product existingProduct = productMapper.findByProductCode(request.productCode());
-        if (existingProduct != null) {
-            throw new BusinessException(400, "商品编码已存在");
+        String providedProductCode = normalizeProductCode(request.productCode());
+        if (providedProductCode != null) {
+            Product existingProduct = productMapper.findByProductCode(providedProductCode);
+            if (existingProduct != null) {
+                throw new BusinessException(400, "商品编码已存在");
+            }
         }
 
         // validate category exists and is enabled
@@ -61,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product product = new Product();
-        product.setProductCode(request.productCode());
+        product.setProductCode(providedProductCode);
         product.setProductName(request.productName());
         product.setCategoryId(request.categoryId());
         product.setUnit(request.unit() != null && !request.unit().isBlank() ? request.unit() : DEFAULT_UNIT);
@@ -69,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
         product.setSalePrice(request.salePrice());
         product.setStatus(DEFAULT_PRODUCT_STATUS);
 
-        productMapper.insert(product);
+        insertProduct(product, providedProductCode == null);
         stockService.initializeStockForProduct(product.getId());
 
         ProductView createdProduct = productMapper.findByIdWithCategory(product.getId());
@@ -119,9 +126,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private void validateCreateRequest(ProductCreateRequest request) {
-        if (isBlank(request.productCode())) {
-            throw new BusinessException(400, "商品编码不能为空");
-        }
         if (isBlank(request.productName())) {
             throw new BusinessException(400, "商品名称不能为空");
         }
@@ -170,9 +174,42 @@ public class ProductServiceImpl implements ProductService {
             product.getUnit(),
             product.getPurchasePrice(),
             product.getSalePrice(),
+            product.getSalesCount() != null ? product.getSalesCount() : 0,
             product.getStatus(),
             product.getCreateTime()
         );
+    }
+
+    private void insertProduct(Product product, boolean autoGenerateProductCode) {
+        int maxAttempts = autoGenerateProductCode ? 2 : 1;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            if (autoGenerateProductCode) {
+                product.setProductCode(generateProductCode());
+            }
+            try {
+                productMapper.insert(product);
+                return;
+            } catch (DuplicateKeyException ex) {
+                if (!autoGenerateProductCode) {
+                    throw new BusinessException(400, "商品编码已存在");
+                }
+                if (attempt == maxAttempts) {
+                    throw new BusinessException(500, "商品编号生成失败，请重试");
+                }
+            }
+        }
+    }
+
+    private String generateProductCode() {
+        int randomNumber = ThreadLocalRandom.current().nextInt(10_000);
+        return "P" + LocalDateTime.now().format(PRODUCT_CODE_TIME_FORMATTER) + String.format("%04d", randomNumber);
+    }
+
+    private String normalizeProductCode(String productCode) {
+        if (productCode == null || productCode.isBlank()) {
+            return null;
+        }
+        return productCode.trim();
     }
 
     private boolean isBlank(String value) {

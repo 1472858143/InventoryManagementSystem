@@ -17,6 +17,7 @@ public class ProductView {
     private String unit;
     private BigDecimal purchasePrice;
     private BigDecimal salePrice;
+    private Integer salesCount;
     private Integer status;
     private LocalDateTime createTime;
 }

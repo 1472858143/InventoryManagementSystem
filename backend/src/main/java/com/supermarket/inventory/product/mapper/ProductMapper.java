@@ -88,8 +88,15 @@ public interface ProductMapper {
         SELECT p.id AS id, p.product_code AS productCode, p.product_name AS productName,
                p.category_id AS categoryId, c.category_name AS categoryName,
                p.unit AS unit, p.purchase_price AS purchasePrice,
-               p.sale_price AS salePrice, p.status AS status, p.create_time AS createTime
+               p.sale_price AS salePrice, COALESCE(s.sales_count, 0) AS salesCount,
+               p.status AS status, p.create_time AS createTime
         FROM product p INNER JOIN category c ON c.id = p.category_id
+        LEFT JOIN (
+            SELECT product_id, COALESCE(SUM(change_quantity), 0) AS sales_count
+            FROM stock_log
+            WHERE change_type = 'OUTBOUND'
+            GROUP BY product_id
+        ) s ON s.product_id = p.id
         ORDER BY p.id ASC
         """)
     List<ProductView> findAllWithCategory();
