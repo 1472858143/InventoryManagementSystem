@@ -92,7 +92,7 @@ public interface ProductMapper {
                p.status AS status, p.create_time AS createTime
         FROM product p INNER JOIN category c ON c.id = p.category_id
         LEFT JOIN (
-            SELECT product_id, COALESCE(SUM(change_quantity), 0) AS sales_count
+            SELECT product_id, COALESCE(SUM(ABS(change_quantity)), 0) AS sales_count
             FROM stock_log
             WHERE change_type = 'OUTBOUND'
             GROUP BY product_id
