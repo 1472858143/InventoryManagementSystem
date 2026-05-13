@@ -9,7 +9,7 @@
       <el-menu
         :default-active="route.path"
         router
-        :default-openeds="['master-group', 'stocks-group', 'system-group']"
+        :default-openeds="['master-group', 'stocks-group', 'purchase-group', 'sales-group', 'system-group']"
         class="sidebar-menu"
       >
         <el-menu-item index="/">
@@ -61,6 +61,59 @@
             <PackageMinus :size="14" class="menu-icon" />
             <template #title>出库单据</template>
           </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="purchase-group">
+          <template #title>
+            <PackagePlus :size="15" class="menu-icon" />
+            <span>采购管理</span>
+          </template>
+          <el-menu-item index="/purchase/orders/create">
+            <PackagePlus :size="14" class="menu-icon" />
+            <template #title>进货入库</template>
+          </el-menu-item>
+          <el-menu-item index="/purchase/orders">
+            <List :size="14" class="menu-icon" />
+            <template #title>进货单查询</template>
+          </el-menu-item>
+          <el-menu-item index="/purchase/returns/create">
+            <PackageMinus :size="14" class="menu-icon" />
+            <template #title>采购退货</template>
+          </el-menu-item>
+          <el-menu-item index="/purchase/returns">
+            <List :size="14" class="menu-icon" />
+            <template #title>采购退货查询</template>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="sales-group">
+          <template #title>
+            <PackageMinus :size="15" class="menu-icon" />
+            <span>销售管理</span>
+          </template>
+          <el-menu-item index="/sales/orders/create">
+            <PackageMinus :size="14" class="menu-icon" />
+            <template #title>销售出库</template>
+          </el-menu-item>
+          <el-menu-item index="/sales/orders">
+            <List :size="14" class="menu-icon" />
+            <template #title>销售单查询</template>
+          </el-menu-item>
+          <el-menu-item index="/sales/returns/create">
+            <PackagePlus :size="14" class="menu-icon" />
+            <template #title>客户退货</template>
+          </el-menu-item>
+          <el-menu-item index="/sales/returns">
+            <List :size="14" class="menu-icon" />
+            <template #title>客户退货查询</template>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-sub-menu index="stockcheck-group">
+          <template #title>
+            <ClipboardList :size="15" class="menu-icon" />
+            <span>库存盘点</span>
+          </template>
           <el-menu-item index="/stockchecks">
             <ClipboardList :size="14" class="menu-icon" />
             <template #title>库存盘点</template>

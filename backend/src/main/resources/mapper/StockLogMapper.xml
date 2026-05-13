@@ -11,14 +11,22 @@
             stock_type,
             change_quantity,
             before_quantity,
-            after_quantity
+            after_quantity,
+            source_type,
+            source_id,
+            reason,
+            operator_id
         ) VALUES (
             #{productId},
             #{changeType},
             #{stockType},
             #{changeQuantity},
             #{beforeQuantity},
-            #{afterQuantity}
+            #{afterQuantity},
+            #{sourceType},
+            #{sourceId},
+            #{reason},
+            #{operatorId}
         )
     </insert>
 

@@ -51,6 +51,20 @@
         WHERE product_id = #{productId}
     </select>
 
+    <select id="findEntityByProductIdForUpdate" parameterType="long" resultType="com.supermarket.inventory.stock.entity.Stock">
+        SELECT
+            id,
+            product_id     AS productId,
+            quantity,
+            shelf_status   AS shelfStatus,
+            min_stock      AS minStock,
+            max_stock      AS maxStock,
+            update_time    AS updateTime
+        FROM stock
+        WHERE product_id = #{productId}
+        FOR UPDATE
+    </select>
+
     <insert id="insert" parameterType="com.supermarket.inventory.stock.entity.Stock" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO stock (
             product_id,

@@ -16,6 +16,8 @@ public interface StockMapper {
 
     Stock findEntityByProductId(@Param("productId") Long productId);
 
+    Stock findEntityByProductIdForUpdate(@Param("productId") Long productId);
+
     int insert(Stock stock);
 
     int updateLimitByProductId(

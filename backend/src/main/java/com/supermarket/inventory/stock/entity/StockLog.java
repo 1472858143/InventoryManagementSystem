@@ -15,5 +15,9 @@ public class StockLog {
     private Integer changeQuantity;
     private Integer beforeQuantity;
     private Integer afterQuantity;
+    private String sourceType;
+    private Long sourceId;
+    private String reason;
+    private Long operatorId;
     private LocalDateTime createTime;
 }
