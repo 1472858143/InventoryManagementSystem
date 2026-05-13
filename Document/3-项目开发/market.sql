@@ -117,7 +117,7 @@ CREATE TABLE stock_log (
                            id BIGINT PRIMARY KEY AUTO_INCREMENT,
                            product_id BIGINT NOT NULL,
                            change_type VARCHAR(20) NOT NULL COMMENT 'INBOUND / OUTBOUND / CHECK',
-                           stock_type VARCHAR(20) NOT NULL DEFAULT '' COMMENT '旧版兼容字段，新代码以 source_type 为主',
+                           stock_type VARCHAR(20) NOT NULL DEFAULT 'WAREHOUSE' COMMENT '变更影响的库存类型：WAREHOUSE=仓库库存 / SHELF=上架库存',
                            change_quantity INT NOT NULL,
                            before_quantity INT NOT NULL,
                            after_quantity INT NOT NULL,
