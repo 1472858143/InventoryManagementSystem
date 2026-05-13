@@ -67,6 +67,7 @@ CREATE TABLE stock (
                        quantity INT NOT NULL,
                        min_stock INT NOT NULL,
                        max_stock INT NOT NULL,
+                       shelf_status VARCHAR(20) NOT NULL DEFAULT '正常' COMMENT '上架状态：正常/缺货',
                        update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                            ON UPDATE CURRENT_TIMESTAMP,
                        UNIQUE KEY uk_stock_product (product_id),
@@ -116,6 +117,7 @@ CREATE TABLE stock_log (
                            id BIGINT PRIMARY KEY AUTO_INCREMENT,
                            product_id BIGINT NOT NULL,
                            change_type VARCHAR(20) NOT NULL COMMENT 'INBOUND / OUTBOUND / CHECK',
+                           stock_type VARCHAR(20) NOT NULL DEFAULT '' COMMENT '旧版兼容字段，新代码以 source_type 为主',
                            change_quantity INT NOT NULL,
                            before_quantity INT NOT NULL,
                            after_quantity INT NOT NULL,
