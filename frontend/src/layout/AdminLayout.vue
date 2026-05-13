@@ -22,6 +22,14 @@
             <BookOpen :size="15" class="menu-icon" />
             <span>基础资料</span>
           </template>
+          <el-menu-item index="/master/suppliers">
+            <Truck :size="14" class="menu-icon" />
+            <template #title>供应商管理</template>
+          </el-menu-item>
+          <el-menu-item index="/master/customers">
+            <Users :size="14" class="menu-icon" />
+            <template #title>客户管理</template>
+          </el-menu-item>
           <el-menu-item index="/products">
             <Package :size="14" class="menu-icon" />
             <template #title>商品管理</template>
@@ -102,7 +110,7 @@
 import {
   Archive, ArrowUpFromLine, BarChart3, BookOpen, ClipboardList, Home, Info,
   LayoutDashboard, List, Package, PackageMinus, PackagePlus,
-  Settings, User, Users, Warehouse,
+  Settings, Truck, User, Users, Warehouse,
 } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

@@ -52,6 +52,8 @@ const router = createRouter({
         { path: 'outbounds', name: 'outbounds', component: OutboundView },
         { path: 'stockchecks', name: 'stockchecks', component: StockcheckView },
         { path: 'reports', name: 'reports', component: ReportView },
+        { path: 'master/suppliers', name: 'master-suppliers', component: () => import('../views/master/SupplierView.vue') },
+        { path: 'master/customers', name: 'master-customers', component: () => import('../views/master/CustomerView.vue') },
         { path: 'users', name: 'users', component: UserView },
         { path: 'system', name: 'system', component: SystemView },
       ],
