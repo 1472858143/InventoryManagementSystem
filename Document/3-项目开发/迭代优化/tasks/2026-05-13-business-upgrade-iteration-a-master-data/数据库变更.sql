@@ -45,6 +45,9 @@
 -- restock_order Mapper / Entity 为死代码，直接删除，不建表
 
 -- 2-6. 新增 5 张表（commit 48d358f，已追加到 sql/market.sql 末尾）
+-- 2026-05-13 运行库补齐记录：
+-- 本地运行库曾缺少以下 5 张 IT-005 表，导致 /api/suppliers 与 /api/customers 返回 code=500。
+-- 已按本节 DDL 补执行到 supermarket_inventory，并复测两个列表接口返回 code=0。
 
 CREATE TABLE supplier (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
