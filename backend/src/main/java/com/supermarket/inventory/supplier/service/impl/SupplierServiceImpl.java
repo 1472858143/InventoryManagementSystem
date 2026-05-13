@@ -9,6 +9,7 @@ import com.supermarket.inventory.supplier.service.SupplierService;
 import com.supermarket.inventory.supplier.vo.SupplierVO;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -28,9 +29,16 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
+    @Transactional
     public SupplierVO create(SupplierCreateRequest request) {
         String code = normalizeCode(request.code());
         boolean autoGenerate = (code == null);
+
+        if (!autoGenerate) {
+            if (supplierMapper.findByCode(code) != null) {
+                throw new BusinessException(400, "供应商编码已存在");
+            }
+        }
 
         Supplier supplier = new Supplier();
         supplier.setName(request.name().trim());
@@ -103,7 +111,7 @@ public class SupplierServiceImpl implements SupplierService {
         return new SupplierVO(
             s.getId(), s.getCode(), s.getName(), s.getContactPerson(),
             s.getPhone(), s.getAddress(), s.getRemark(),
-            s.getStatus(), s.getCreatedAt()
+            s.getStatus(), s.getCreatedAt(), s.getUpdatedAt()
         );
     }
 }

@@ -17,7 +17,8 @@ public interface SupplierMapper {
         SELECT id AS id, code AS code, name AS name,
                contact_person AS contactPerson, phone AS phone,
                address AS address, remark AS remark,
-               status AS status, created_at AS createdAt
+               status AS status, created_at AS createdAt,
+               updated_at AS updatedAt
         FROM supplier
         WHERE code = #{code}
         """)
@@ -34,7 +35,8 @@ public interface SupplierMapper {
         SELECT id AS id, code AS code, name AS name,
                contact_person AS contactPerson, phone AS phone,
                address AS address, remark AS remark,
-               status AS status, created_at AS createdAt
+               status AS status, created_at AS createdAt,
+               updated_at AS updatedAt
         FROM supplier
         WHERE (#{keyword} IS NULL OR code LIKE CONCAT('%', #{keyword}, '%')
                                   OR name LIKE CONCAT('%', #{keyword}, '%'))
@@ -46,7 +48,8 @@ public interface SupplierMapper {
         SELECT id AS id, code AS code, name AS name,
                contact_person AS contactPerson, phone AS phone,
                address AS address, remark AS remark,
-               status AS status, created_at AS createdAt
+               status AS status, created_at AS createdAt,
+               updated_at AS updatedAt
         FROM supplier
         WHERE id = #{id}
         """)

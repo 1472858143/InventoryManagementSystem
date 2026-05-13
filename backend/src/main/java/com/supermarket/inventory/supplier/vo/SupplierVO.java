@@ -11,5 +11,6 @@ public record SupplierVO(
     String address,
     String remark,
     Integer status,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {}
