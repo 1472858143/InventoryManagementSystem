@@ -9,7 +9,7 @@
       <el-menu
         :default-active="route.path"
         router
-        :default-openeds="['products-group', 'stocks-group', 'system-group']"
+        :default-openeds="['master-group', 'stocks-group', 'system-group']"
         class="sidebar-menu"
       >
         <el-menu-item index="/">
@@ -17,18 +17,22 @@
           <template #title>首页</template>
         </el-menu-item>
 
-        <el-sub-menu index="products-group">
+        <el-sub-menu index="master-group">
           <template #title>
-            <ShoppingBag :size="15" class="menu-icon" />
-            <span>商品管理</span>
+            <BookOpen :size="15" class="menu-icon" />
+            <span>基础资料</span>
           </template>
+          <el-menu-item index="/master/suppliers">
+            <Truck :size="14" class="menu-icon" />
+            <template #title>供应商管理</template>
+          </el-menu-item>
+          <el-menu-item index="/master/customers">
+            <Users :size="14" class="menu-icon" />
+            <template #title>客户管理</template>
+          </el-menu-item>
           <el-menu-item index="/products">
             <Package :size="14" class="menu-icon" />
-            <template #title>商品库</template>
-          </el-menu-item>
-          <el-menu-item index="/categories">
-            <Tag :size="14" class="menu-icon" />
-            <template #title>商品分类</template>
+            <template #title>商品管理</template>
           </el-menu-item>
         </el-sub-menu>
 
@@ -104,9 +108,9 @@
 
 <script setup>
 import {
-  Archive, ArrowUpFromLine, BarChart3, ClipboardList, Home, Info,
+  Archive, ArrowUpFromLine, BarChart3, BookOpen, ClipboardList, Home, Info,
   LayoutDashboard, List, Package, PackageMinus, PackagePlus,
-  Settings, ShoppingBag, Tag, User, Users, Warehouse,
+  Settings, Truck, User, Users, Warehouse,
 } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

@@ -67,6 +67,7 @@ CREATE TABLE stock (
                        quantity INT NOT NULL,
                        min_stock INT NOT NULL,
                        max_stock INT NOT NULL,
+                       shelf_status VARCHAR(20) NOT NULL DEFAULT '正常' COMMENT '上架状态：正常/缺货',
                        update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                            ON UPDATE CURRENT_TIMESTAMP,
                        UNIQUE KEY uk_stock_product (product_id),
@@ -116,6 +117,7 @@ CREATE TABLE stock_log (
                            id BIGINT PRIMARY KEY AUTO_INCREMENT,
                            product_id BIGINT NOT NULL,
                            change_type VARCHAR(20) NOT NULL COMMENT 'INBOUND / OUTBOUND / CHECK',
+                           stock_type VARCHAR(20) NOT NULL DEFAULT 'WAREHOUSE' COMMENT '变更影响的库存类型：WAREHOUSE=仓库库存 / SHELF=上架库存',
                            change_quantity INT NOT NULL,
                            before_quantity INT NOT NULL,
                            after_quantity INT NOT NULL,
@@ -124,3 +126,68 @@ CREATE TABLE stock_log (
                                FOREIGN KEY (product_id) REFERENCES product(id),
                            CHECK (after_quantity >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE supplier (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(32) NOT NULL COMMENT '供应商编码',
+    name VARCHAR(100) NOT NULL COMMENT '供应商名称',
+    contact_person VARCHAR(50) DEFAULT NULL COMMENT '联系人',
+    phone VARCHAR(30) DEFAULT NULL COMMENT '联系电话',
+    address VARCHAR(200) DEFAULT NULL COMMENT '地址',
+    remark VARCHAR(255) DEFAULT NULL COMMENT '备注',
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '1启用 0停用',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_supplier_code (code),
+    KEY idx_supplier_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='供应商主数据';
+
+CREATE TABLE customer (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(32) NOT NULL COMMENT '客户编码',
+    name VARCHAR(100) NOT NULL COMMENT '客户名称',
+    contact_person VARCHAR(50) DEFAULT NULL,
+    phone VARCHAR(30) DEFAULT NULL,
+    address VARCHAR(200) DEFAULT NULL,
+    remark VARCHAR(255) DEFAULT NULL,
+    status TINYINT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_customer_code (code),
+    KEY idx_customer_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='客户主数据';
+
+CREATE TABLE system_log (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT DEFAULT NULL,
+    username VARCHAR(50) DEFAULT NULL COMMENT '冗余便于查询',
+    action VARCHAR(50) NOT NULL COMMENT '动作类型 LOGIN/LOGOUT/CREATE/UPDATE/DELETE/CANCEL',
+    target_type VARCHAR(50) DEFAULT NULL COMMENT '目标类型 PURCHASE_ORDER/SALES_ORDER/USER',
+    target_id BIGINT DEFAULT NULL,
+    content VARCHAR(500) DEFAULT NULL COMMENT '描述',
+    ip VARCHAR(45) DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_log_user (user_id),
+    KEY idx_log_action (action),
+    KEY idx_log_target (target_type, target_id),
+    KEY idx_log_time (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统操作日志';
+
+CREATE TABLE permission (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(64) NOT NULL COMMENT '权限编码 如 purchase:inbound',
+    name VARCHAR(64) NOT NULL,
+    parent_id BIGINT DEFAULT NULL,
+    type VARCHAR(16) NOT NULL DEFAULT 'MENU' COMMENT 'MENU/BUTTON',
+    path VARCHAR(128) DEFAULT NULL COMMENT '前端路由',
+    sort INT NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_permission_code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限点';
+
+CREATE TABLE role_permission (
+    role_id BIGINT NOT NULL,
+    permission_id BIGINT NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    KEY idx_rp_permission (permission_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色权限关联';
