@@ -44,7 +44,7 @@ const router = createRouter({
       children: [
         { path: '', name: 'home', component: HomeView },
         { path: 'products', name: 'products', component: ProductView },
-        { path: 'categories', name: 'categories', component: () => import('../views/category/CategoryView.vue') },
+        { path: 'categories', redirect: '/products' },
         { path: 'stock-workspace', name: 'stock-workspace', component: StockWorkspaceView },
         { path: 'stocks', name: 'stocks', component: StockView },
         { path: 'inbounds', name: 'inbounds', component: InboundView },
